@@ -5,3 +5,17 @@
   --font-airal: "arial", sans-serif;
   --font-greet:"Manrope",sans-serif;
 }
+.slideing {
+  animation: slide-In 0.3s ease-out;
+}
+
+@keyframes slide-In {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}

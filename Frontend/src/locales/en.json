@@ -1,0 +1,20 @@
+{
+  "homePage": {
+    "welcome": "Welcome to MediKiosk",
+    "subtitle": "We'll help you share your health information with",
+    "subtitle2":"your doctor clearly and easily.",
+    "start": "Start",
+    "help":"Help",
+    "chooseLanguage": "Choose your language"
+  },
+  "authPage": {
+    "title": "Let's identify you",
+    "subtitle": "Please enter or scan your health ID to proceed securely.",
+    "scanButton": "Scan",
+    "tokenid":"TOKEN ID",
+    "enterButton": "Enter",
+    "noToken": "I don't have a TOKEN ID",
+    "stepText": "STEP 1 OF 5",
+    "stepTitle": "IDENTITY CONSENT"
+  }
+}
