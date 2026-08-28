@@ -6,7 +6,7 @@ import Middle from "../components/hero/Middle";
 
 const Home = () => {
   return (
-    <div className="h-full w-full bg-gray-100 ">
+    <div className="max-h-fit max-w-full bg-gray-100 ">
       <Middle />
       <Bottom />
     </div>
