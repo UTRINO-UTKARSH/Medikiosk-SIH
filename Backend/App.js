@@ -1,10 +1,15 @@
 const express = require("express")
 const cors = require("cors")
+const cookieParser = require("cookie-parser")
+require('dotenv').config()
+const connectDb = require("./lib/db.js")
 const app = express()
 const port = 3001;
 app.use(cors())
 app.use(express.json())
-
+app.use(cookieParser())
+const userRoutes = require('./routes/routes.js');
+app.use('/api/users',userRoutes)
 app.get('/',(req,res) => {
     res.send("hi")
 })
@@ -69,4 +74,5 @@ app.post('/api/chat',async (req,res) => {
 
 app.listen(port,() => {
     console.log(`Server running at http://localhost:${port}`);
+    connectDb()
 })
