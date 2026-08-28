@@ -16,5 +16,8 @@
     "noToken": "I don't have a TOKEN ID",
     "stepText": "STEP 1 OF 5",
     "stepTitle": "IDENTITY CONSENT"
+  },
+  "consentPage":{
+    "title":"Before we begin"
   }
 }

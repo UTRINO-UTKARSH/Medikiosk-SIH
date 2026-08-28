@@ -4,3 +4,6 @@ We are authencating the user based on the token id and the dob of user.
 FRONTEND(MULTI LANG APPROACH1)
 Created a hardcode json file containing the exact word or sentences and the translated version
 then using i18next of react to translate the site and keep the user choice in the localStorage to prevent refrect catch
+
+under progress navbar language change
+step2 to ai
