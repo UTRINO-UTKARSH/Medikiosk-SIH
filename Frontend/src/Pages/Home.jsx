@@ -6,8 +6,7 @@ import Middle from "../components/hero/Middle";
 
 const Home = () => {
   return (
-    <div className="parent h-screen w-full bg-gray-100 ">
-      <Navbar />
+    <div className="h-full w-full bg-gray-100 ">
       <Middle />
       <Bottom />
     </div>
