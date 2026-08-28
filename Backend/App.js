@@ -25,13 +25,25 @@ app.post('/api/chat',async (req,res) => {
                 system:"You are a helpful assistant. Provide your answer in the requested JSON format. ",
                 format:{
                     type:"object",
-                    properties:{
-                        response:{
-                            type:"string",
-                            description:"Your direct answer to the user's prompt"
+                    properties: {
+                        patientName: { type: "string" },
+                        age: { type: "string" },
+                        primarySymptoms: { 
+                            type: "array", 
+                            items: { type: "string" },
+                            description: "List of the patient's current symptoms" 
+                        },
+                        medicalHistory: { 
+                            type: "string",
+                            description: "Any past conditions or allergies"
+                        },
+                        physicianSummary: {
+                            type: "string",
+                            description: "A concise 1-2 sentence summary of the patient's condition for the doctor"
                         }
                     },
-                    required:["response"]
+                    required: ["patientName", "primarySymptoms", "physicianSummary"]
+            
                 },
                 options: {
                     num_predict:200,
