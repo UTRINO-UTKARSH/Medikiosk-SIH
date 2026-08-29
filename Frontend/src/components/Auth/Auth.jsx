@@ -1,16 +1,16 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { QrCode, Keyboard, UserRoundX } from "lucide-react";
+import { QrCode, Keyboard, UserRoundX,X } from "lucide-react";
 import FormModal from "../common/FormPopUp";
 import { useToast } from "../common/Toast";
 import { useTranslation } from "react-i18next";
-
+import {Scanner} from "@yudiel/react-qr-scanner"
 
 const Auth = ({ setIsAuth,isAuth }) => {
   const { t } = useTranslation();
   const [ModelOpen, setModelOpen] = useState(false);
   const toast = useToast();
-
+  const [isScanning, setisScanning] = useState(false)
   const Fields = [
     { name: "Full Name", label: "Full Name", required: true },
     { name: "Token Id", label: "Token Id", required: true },
@@ -40,6 +40,7 @@ const Auth = ({ setIsAuth,isAuth }) => {
 
       setIsAuth(true);
       toast.success("Patient logged In");
+      setisScanning(false)
       setModelOpen(false);
     } catch (error) {
       setIsAuth(false);
@@ -47,6 +48,19 @@ const Auth = ({ setIsAuth,isAuth }) => {
       toast.error(error.message || "Please enter correct details");
     }
   };
+  const handelScan = (text) =>{
+    try {
+      if(text){
+        const scannedData = JSON.parse(text)
+        handleFormSubmit(scannedData)
+      }
+      
+    } catch (error) {
+       toast.error("Invalid QR Code.")
+       setisScanning
+    }
+    
+  }
   
   return (
     <div className="w-full max-h-full flex flex-col items-center justify-center px-4">
@@ -66,41 +80,67 @@ const Auth = ({ setIsAuth,isAuth }) => {
       </div>
 
 
-      <div className="flex flex-col sm:flex-row justify-center w-full max-w-3xl gap-6 md:gap-10 mb-8">
-
-        <button className="h-48 cursor-pointer w-full sm:w-48 md:h-56 md:w-56 bg-blue-950 hover:bg-blue-900 transition-colors flex flex-col items-center justify-center rounded-2xl group shadow-sm">
-          <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-blue-900 group-hover:bg-blue-800 transition-colors flex items-center justify-center mb-3">
-            <QrCode className="h-8 w-8 md:h-10 md:w-10 text-white" />
+     {isScanning ? (
+        
+        <div className="w-full max-w-md flex flex-col items-center mb-8">
+          {/* The Camera Feed */}
+          <div className="w-full rounded-2xl overflow-hidden border-4 border-blue-950 shadow-lg relative bg-black">
+            <Scanner 
+              onResult={(text) => handelScan(text)} 
+              onError={(error) => console.log(error?.message)}
+            />
           </div>
-          <span className="text-white text-xl md:text-2xl font-greet font-semibold">
-            {t('authPage.scan')}
-          </span>
-          <span className="text-white text-xl md:text-2xl font-greet font-bold">
-            {t('authPage.tokenid')}
-          </span>
-        </button>
+          
+          {/* Cancel Button */}
+          <button 
+            onClick={() => setisScanning(false)}
+            className="mt-6 flex items-center gap-2 text-red-600 font-bold hover:text-red-800 transition-colors cursor-pointer"
+          >
+            <X className="w-6 h-6" /> Cancel Scanning
+          </button>
+        </div>
 
+      ) : (
 
-        <button onClick={() => setModelOpen(true)} className="h-48 cursor-pointer w-full sm:w-48 md:h-56 md:w-56 bg-gray-50 hover:bg-gray-100 transition-colors flex flex-col items-center justify-center rounded-2xl border-2 border-gray-200 group shadow-sm">
-          <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-gray-200 group-hover:bg-gray-300 transition-colors flex items-center justify-center mb-3">
-            <Keyboard className="h-8 w-8 md:h-10 md:w-10 text-blue-950" />
-          </div>
-          <span className="text-blue-950 text-xl md:text-2xl font-greet font-semibold">
-            {t('authPage.enter')}
-          </span>
-          <span className="text-blue-950 text-xl md:text-2xl font-greet font-bold">
-            {t('authPage.tokenid')}
-          </span>
-        </button>
+        <div className="flex flex-col sm:flex-row justify-center w-full max-w-3xl gap-6 md:gap-10 mb-8">
+          {/* Scan Action */}
+          <button 
+            onClick={() => setisScanning(true)} 
+            className="h-48 cursor-pointer w-full sm:w-48 md:h-56 md:w-56 bg-blue-950 hover:bg-blue-900 transition-colors flex flex-col items-center justify-center rounded-2xl group shadow-sm"
+          >
+            <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-blue-900 group-hover:bg-blue-800 transition-colors flex items-center justify-center mb-3">
+              <QrCode className="h-8 w-8 md:h-10 md:w-10 text-white" />
+            </div>
+            <span className="text-white text-xl md:text-2xl font-greet font-semibold">
+              {t('authPage.scan')}
+            </span>
+            <span className="text-white text-xl md:text-2xl font-greet font-bold">
+              {t('authPage.tokenid')}
+            </span>
+          </button>
 
-        <FormModal
-          isOpen={ModelOpen}
-          onClose={() => setModelOpen(false)}
-          onSubmit={handleFormSubmit}
-          title="Patient Details"
-          fields={Fields}
-        />
-      </div>
+          <button onClick={() => setModelOpen(true)} className="h-48 cursor-pointer w-full sm:w-48 md:h-56 md:w-56 bg-gray-50 hover:bg-gray-100 transition-colors flex flex-col items-center justify-center rounded-2xl border-2 border-gray-200 group shadow-sm">
+            <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-gray-200 group-hover:bg-gray-300 transition-colors flex items-center justify-center mb-3">
+              <Keyboard className="h-8 w-8 md:h-10 md:w-10 text-blue-950" />
+            </div>
+            <span className="text-blue-950 text-xl md:text-2xl font-greet font-semibold">
+              {t('authPage.enter')}
+            </span>
+            <span className="text-blue-950 text-xl md:text-2xl font-greet font-bold">
+              {t('authPage.tokenid')}
+            </span>
+          </button>
+
+          <FormModal
+            isOpen={ModelOpen}
+            onClose={() => setModelOpen(false)}
+            onSubmit={handleFormSubmit}
+            title="Patient Details"
+            fields={Fields}
+          />
+        </div>
+
+      )}
 
 
       <button onClick={() => toast.error("Please go to the counter for your token")} className="h-14 w-full max-w-[320px] bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center rounded-2xl cursor-pointer">

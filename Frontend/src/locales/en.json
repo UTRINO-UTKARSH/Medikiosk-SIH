@@ -9,7 +9,8 @@
   },
   "authPage": {
     "title": "Let's identify you",
-    "subtitle": "Please enter or scan your health ID to proceed securely.",
+    "subtitle": "Please enter or scan your health ID to proceed securely",
+    "subtitle2":"To proceed safely.",
     "scan": "Scan",
     "tokenid":"TOKEN ID",
     "enter": "Enter",

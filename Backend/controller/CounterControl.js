@@ -7,7 +7,7 @@ exports.generateCode = async (req, res) => {
             return res.status(400).json({ message: "Name and DOB is required" })
         }
         const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-        let newCode = ''
+        let newCode = '';
         for (let i = 0; i <9; i++) {
             newCode += chars.charAt(Math.floor(Math.random() * chars.length))
         }
