@@ -10,14 +10,16 @@
   "authPage": {
     "title": "Let's identify you",
     "subtitle": "Please enter or scan your health ID to proceed securely.",
-    "scanButton": "Scan",
+    "scan": "Scan",
     "tokenid":"TOKEN ID",
-    "enterButton": "Enter",
+    "enter": "Enter",
     "noToken": "I don't have a TOKEN ID",
     "stepText": "STEP 1 OF 5",
     "stepTitle": "IDENTITY CONSENT"
   },
   "consentPage":{
-    "title":"Before we begin"
+    "title":"Before we begin",
+    "consent":"We will ask questions about your health and may use your previous medical document to prepare information for doctor.",
+    "listen":"Listen to this"
   }
 }
