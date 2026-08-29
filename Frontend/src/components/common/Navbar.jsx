@@ -1,26 +1,30 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
 import { CircleQuestionMark, CircleUser, Globe } from "lucide-react";
-
-const Navbar = ({
-  Logo,
-  LogoTitle = "MediKiosk",
-  Language,
-  HelpText = "Help",
-  UserText = "User",
-  showLanguage,
-  showHelp,
-  showUser,
-  onLanguageClick,
-  onHelpClick,
+import { useTranslation } from "react-i18next";
+const Navbar = ({ Logo, LogoTitle = "MediKiosk", Language, HelpText = "Help", UserText = "User", showLanguage, showHelp, showUser, onHelpClick,
   onUserClick,
 }) => {
+  const {i18n} = useTranslation()
+  const languages = [
+    { code: "en", label: "English" },
+    { code: "hi", label: "हिंदी" },
+    { code: "mr", label: "मराठी" } 
+  ];
+ 
+  const onLanguageClick = () => {
+   const currentLangCode = i18n.resolvedLanguage || i18n.language
+   const currentIndex = languages.findIndex(lang=>lang.code == currentLangCode)
+   const nextIndex = (currentIndex+1)%languages.length
+   i18n.changeLanguage(languages[nextIndex].code);
+  }
+  const currentLangCode = i18n.resolvedLanguage||i18n.language;
+  const currentLangLabel = languages.find(lang => lang.code === currentLangCode)?.label || "English";
   return (
     <div>
       <nav className="fixed top-0 left-0 w-full h-16 md:h-20 shadow-sm z-50 bg-white">
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-10">
 
-          {/* LEFT SIDE: Logo */}
           <div className="flex items-center gap-2 md:gap-4">
             {Logo && (
               <img
@@ -34,7 +38,6 @@ const Navbar = ({
             </span>
           </div>
 
-          {/* RIGHT SIDE: Navigation Icons */}
           <div className="flex items-center gap-4 md:gap-8 lg:gap-10 text-sm md:text-base text-gray-700">
 
             {showLanguage && (
@@ -43,7 +46,7 @@ const Navbar = ({
                 onClick={onLanguageClick}
               >
                 <Globe className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
-                <span className="hidden sm:block font-medium">{Language}</span>
+                <span className="hidden sm:block font-medium">{currentLangLabel}</span>
               </div>
             )}
 
