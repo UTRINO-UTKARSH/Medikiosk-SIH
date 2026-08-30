@@ -15,7 +15,7 @@ const Middle = () => {
       <Content />
       <HeroImage />
       <div className="flex">
-        <Link to="/second">
+        <Link to="/auth">
           <div className="cursor-pointer h-18 w-40 md:w-60 bg-blue-950 rounded-lg flex justify-center items-center mt-6 mr-3">
             <div className="flex justify-between w-20 font-bold text-white font-robot text-xl md:text-2xl items-center">
               {t('homePage.start')}

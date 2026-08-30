@@ -42,7 +42,7 @@ const From = () => {
     };
 
     return (
-        <div className='flex items-center justify-center px-4'>
+        <div className='min-h-screen flex items-center justify-center px-4'>
             <div className='w-full max-w-xl bg-white rounded-2xl shadow-sm p-4'>
                 <span className='block text-blue-950 font-bold text-3xl mb-6'>Create Your Profile</span>
 

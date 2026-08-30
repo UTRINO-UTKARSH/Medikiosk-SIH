@@ -1,20 +1,75 @@
-/* eslint-disable no-unused-vars */
-
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import React from "react";
 import Navbar from "./components/common/Navbar";
-import Bottom from "./components/hero/Bottom";
-import Middle from "./components/hero/Middle";
 import Home from "./Pages/Home";
 import Verification from './Pages/Verification';
 import Dashboard from './Pages/Dashboard';
+import Consent from './components/Child Pages/Consent';
+import From from './components/common/From';
+import { useToast } from './components/common/Toast';
+
+const publicRoutes = ['/', '/auth', '/login'];
+
+const ProtectedRoute = ({ children }) => {
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [isChecking, setIsChecking] = React.useState(true);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/users/check-auth', {
+          credentials: 'include'
+        });
+        const data = await response.json();
+
+        if (isMounted) {
+          setIsAuthenticated(response.ok && data.authenticated);
+          setIsChecking(false);
+        }
+      } catch {
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setIsChecking(false);
+        }
+      }
+    };
+
+    checkAuth();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!isChecking && !isAuthenticated) {
+      toast.info('Please authenticate first to continue.');
+      navigate('/auth', { replace: true });
+    }
+  }, [isChecking, isAuthenticated, navigate, toast]);
+
+  if (isChecking || !isAuthenticated) return null;
+  return children;
+};
+
 const AppRoutes = () => {
+  const { pathname } = useLocation();
+  const showNavbar = !publicRoutes.includes(pathname.toLowerCase());
+  
   return (
     <div className="h-screen w-full bg-gray-100 ">
+      {showNavbar && <Navbar showHelp={true} showLanguage={true} showUser={true} />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/second" element={<Verification/>}/>
-        <Route path="/dashboard" element ={<Dashboard/>}/>
+        <Route path="/auth" element={<Verification />} />
+        <Route path="/login" element={<Verification />} />
+        <Route path="/profile" element={<ProtectedRoute><From /></ProtectedRoute>} />
+        <Route path="/consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   )

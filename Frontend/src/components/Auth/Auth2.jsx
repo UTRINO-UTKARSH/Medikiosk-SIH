@@ -3,12 +3,14 @@ import React, { useState } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";  
 import { useToast } from "../common/Toast";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import bgImage from "../../assets/bg.jpeg";
 import OtpModal from "../common/OtpModal";
 
 const Auth2 = ({ onVerified }) => {
     const { t } = useTranslation();
     const toast = useToast();
+    const navigate = useNavigate();
     const [phoneNumber, setPhoneNumber] = useState(""); 
     const [email, setEmail] = useState("");
     const [needsEmail, setNeedsEmail] = useState(false);  
@@ -74,23 +76,23 @@ const Auth2 = ({ onVerified }) => {
         } 
     };
 
-    return (  
-        <div className="bg-gray-50 flex items-center justify-center px-4 py-10 relative "> 
-            
-            <div className="flex flex-col md:flex-row items-start gap-6 w-full max-w-4xl">
-                <div className="w-full md:w-3/5 h-110 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between">
+    return (
+        <div className="w-full px-4 py-8 sm:px-8 lg:px-12">
+            <div className="mx-auto grid w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl md:grid-cols-2">
+                <div className="flex min-h-130 flex-col justify-between p-6 sm:p-10 lg:p-12">
                     <form onSubmit={handleSubmit} className="flex flex-col h-full justify-between">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                            <div className="mb-8 h-1.5 w-12 rounded-full bg-blue-950" />
+                            <h1 className="max-w-xs text-3xl font-bold leading-tight text-gray-950 sm:text-4xl">
                                 {t("authPage2.title", "Welcome to MediKiosk")}
                             </h1>
-                            <p className="mt-3 text-gray-500 mb-6">
+                            <p className="mt-4 max-w-sm text-base leading-7 text-gray-500">
                                 {needsEmail 
                                     ? "Please provide an email address for your new account." 
                                     : "Enter your registered phone number to log in."}
                             </p>
 
-                            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <label className="mt-9 block text-sm font-semibold text-gray-800">Phone Number</label>
                             <input
                                 type="tel"
                                 value={phoneNumber}
@@ -98,12 +100,12 @@ const Auth2 = ({ onVerified }) => {
                                 disabled={needsEmail || isLoading} 
                                 placeholder="10-digit number"
                                 maxLength="10"
-                                className="mt-2 mb-4 w-full rounded-lg border border-gray-300 px-4 py-3 disabled:bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                                className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3.5 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-950/10 disabled:bg-gray-100"
                             />
 
                             {needsEmail && (
                                 <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                                    <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                                    <label className="mt-5 block text-sm font-semibold text-gray-800">Email Address</label>
                                     <input
                                         type="email"
                                         value={email}
@@ -111,18 +113,18 @@ const Auth2 = ({ onVerified }) => {
                                         disabled={isLoading} 
                                         placeholder="you@example.com"
                                         required
-                                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                                        className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3.5 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-950/10"
                                     />
                                 </div>
                             )}
                         </div>
 
-                        <div className="mt-8 pt-4 border-t border-gray-200 flex items-center justify-between">
-                            <button type="button" className="text-gray-700 cursor-pointer font-medium hover:text-gray-900">Back</button>
+                        <div className="mt-10 flex items-center justify-between border-t border-gray-200 pt-5">
+                            <button type="button" onClick={() => navigate("/")} className="cursor-pointer font-medium text-gray-600 transition hover:text-gray-950">Back</button>
                             <button
                                 type="submit" 
                                 disabled={phoneNumber.length !== 10 || (needsEmail && !email) || isLoading}
-                                className="inline-flex cursor-pointer items-center gap-2 bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-5 py-3 rounded-lg hover:bg-gray-800 transition"
+                                className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-blue-950 px-5 py-3 font-semibold text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 {isLoading ? (
                                     <>
@@ -138,8 +140,9 @@ const Auth2 = ({ onVerified }) => {
                     </form>
                 </div>
 
-                <div className="md:w-3/5 md:block overflow-hidden mt-10 h-85 shadow-lg relative rounded-2xl">
-                    <img src={bgImage} alt="Background" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="relative hidden min-h-130 overflow-hidden bg-blue-950 md:block">
+                    <img src={bgImage} alt="MediKiosk care team" className="absolute inset-0 h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-blue-950/15" />
                 </div>
             </div>
  
