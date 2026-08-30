@@ -1,10 +1,12 @@
 const User = require('../models/userModel.js');
+const Auth = require('../models/authModel.js'); // Brought in the new Auth model
 const { generateToken } = require('../lib/utils.js');
 const jwt = require('jsonwebtoken');
-const validator = require("validator")
-const nodemailer = require('nodemailer')
-const QRCode = require('qrcode');
+const validator = require("validator");
+const nodemailer = require('nodemailer');
 const connectDb = require('../lib/db.js');
+// const QRCode = require('qrcode'); // Uncomment if needed later
+ 
 exports.checkAuth = (req, res) => {
     const token = req.cookies.jwt;
     if (!token) return res.status(401).json({ authenticated: false });
@@ -16,74 +18,48 @@ exports.checkAuth = (req, res) => {
         res.status(401).json({ authenticated: false });
     }
 }
-
-exports.verifyOTP = async (req, res) => {
-    try {
-        const { phoneNumber, otp } = req.body;
-
-        if (!phoneNumber || !otp) {
-            return res.status(400).json({ message: "Phone number and OTP are required" });
-        }
-
-        const foundUser = await User.findOne({ phoneNumber });
-        if (!foundUser) {
-            return res.status(404).json({ message: "Patient not found" });
-        }
-
-        // Check if OTP matches and is not expired
-        if (!foundUser.otp || foundUser.otp !== otp || foundUser.otpExpires < Date.now()) {
-            return res.status(401).json({ message: "Invalid or expired OTP" });
-        }
-
-        // Clear OTP fields so code cannot be reused
-        foundUser.otp = null;
-        foundUser.otpExpires = null;
-        await foundUser.save();
-
-        // Issue 6-hour JWT auth cookie
-        generateToken(res, foundUser._id);
-
-        return res.status(200).json({
-            success: true,
-            message: "Login successful. Session valid for 6hrs",
-            userId: foundUser._id
-        });
-
-    } catch (error) {
-        console.error("Verification error:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-};
-
+ 
 exports.sendOTP = async (req, res) => {
-    await connectDb()
+    await connectDb();
     try {
-        const { phoneNumber } = req.body;
-        const { email } = req.body
-        if ( !email) {
-            return res.status(400).json({ message: "All fields are required" });
+        const { phoneNumber, email } = req.body;
+
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneNumber || !phoneRegex.test(phoneNumber)) {
+            return res.status(400).json({ message: "Valid 10-digit phone number is required" });
         }
-        if (!validator.isEmail(email)) {
+
+        if (email && !validator.isEmail(email)) {
             return res.status(400).json({ message: "Not a valid Email!" });
         }
-        const phoneRegex = /^\d{10}$/;
-        if (!phoneRegex.test(phoneNumber)) {
-            return res.status(400).json({ message: "Invalid phone number format (must be 10 digits)" });
-        }
+ 
+        let authAccount = await Auth.findOne({ phoneNumber });
+        let targetEmail = "";
 
-        const foundUser = await User.findOne({ phoneNumber });
-        if (!foundUser) {
-            return res.status(404).json({ message: "Patient not found with this number" });
+        if (authAccount) { 
+            if (!authAccount.email) {
+                return res.status(400).json({ message: "Account error: No email registered. Please register." });
+            }
+            targetEmail = authAccount.email;
+        } else { 
+            if (!email) {
+                return res.status(202).json({ 
+                    isNewUser: true, 
+                    requireEmail: true,
+                    message: "New patient detected. Please provide an email address." 
+                });
+            }
+            targetEmail = email;  
+            authAccount = new Auth({ 
+                phoneNumber: phoneNumber, 
+                email: email 
+            });
         }
-        if (!foundUser.email) {
-            return res.status(404).json({ message: "No patient find with this email" })
-        }
-
+ 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        foundUser.otp = otp;
-        foundUser.otpExpires = Date.now() + 10 * 60 * 1000;
-        await foundUser.save();
+        authAccount.otp = otp;
+        authAccount.otpExpires = Date.now() + 10 * 60 * 1000;
+        await authAccount.save();
 
         const transport = nodemailer.createTransport({
             service: "gmail",
@@ -91,10 +67,11 @@ exports.sendOTP = async (req, res) => {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             }
-        })
+        });
+
         const mailOptions = {
             from: `"MediKiosk Check-In" <${process.env.EMAIL_USER}>`,
-            to: foundUser.email,
+            to: targetEmail, 
             subject: 'Your MediKiosk Login OTP',
             html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; color: #172554;">
@@ -106,11 +83,14 @@ exports.sendOTP = async (req, res) => {
             `
         };
 
-        await transport.sendMail(mailOptions)
-        console.log(`OTP EMAILED to ${foundUser.email}`);
+        await transport.sendMail(mailOptions);
+        console.log(`OTP EMAILED to ${targetEmail}`);
+ 
+        const userProfile = await User.findOne({ phoneNumber });
 
         return res.status(200).json({
             success: true,
+            isNewUser: !userProfile || !userProfile.name,   
             message: "OTP sent successfully"
         });
 
@@ -119,6 +99,53 @@ exports.sendOTP = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
+ 
+exports.verifyOTP = async (req, res) => {
+    try {
+        const { phoneNumber, otp } = req.body;
+
+        if (!phoneNumber || !otp) {
+            return res.status(400).json({ message: "Phone number and OTP are required" });
+        }
+ 
+        const authAccount = await Auth.findOne({ phoneNumber });
+        if (!authAccount) {
+            return res.status(404).json({ message: "Authentication record not found" });
+        }
+
+        if (!authAccount.otp || authAccount.otp !== otp || authAccount.otpExpires < Date.now()) {
+            return res.status(401).json({ message: "Invalid or expired OTP" });
+        }
+ 
+        authAccount.otp = null;
+        authAccount.otpExpires = null;
+        await authAccount.save(); 
+ 
+        let foundUser = await User.findOne({ phoneNumber });
+        let isNewUser = false;
+
+        if (!foundUser) { 
+            foundUser = new User({ phoneNumber });
+            await foundUser.save();
+            isNewUser = true;
+        } else {
+            isNewUser = !foundUser.name || !foundUser.age;
+        }
+         
+        generateToken(res, foundUser._id);
+
+        return res.status(200).json({
+            success: true,
+            isNewUser: isNewUser,
+            message: "Login successful. Session valid for 6hrs",
+            userId: foundUser._id
+        });
+
+    } catch (error) {
+        console.error("Verification error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
 
 // exports.generateQR = async (req, res) => {
 //     try {

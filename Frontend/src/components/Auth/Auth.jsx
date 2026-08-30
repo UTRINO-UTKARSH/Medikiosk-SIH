@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import { QrCode, Keyboard, UserRoundX,X } from "lucide-react";
-import FormModal from "../common/FormPopUp";
+import FormModal from "../common/OtpModal";
 import { useToast } from "../common/Toast";
 import { useTranslation } from "react-i18next";
 import {Scanner} from "@yudiel/react-qr-scanner"

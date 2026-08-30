@@ -7,12 +7,14 @@ import Bottom from "./components/hero/Bottom";
 import Middle from "./components/hero/Middle";
 import Home from "./Pages/Home";
 import Verification from './Pages/Verification';
+import Dashboard from './Pages/Dashboard';
 const AppRoutes = () => {
   return (
     <div className="h-screen w-full bg-gray-100 ">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/second" element={<Verification/>}/>
+        <Route path="/dashboard" element ={<Dashboard/>}/>
       </Routes>
     </div>
   )
