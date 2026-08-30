@@ -7,6 +7,13 @@
     "help":"Help",
     "chooseLanguage": "Choose your language"
   },
+  "authPage2":{
+    "title":"Let's get started",
+    "subtitle":"Please enter your email address to begin the registration process.",
+    "emailLable":"Email Address",
+    "back":"Back",
+    "continue":"Continue"
+  },
   "authPage": {
     "title": "Let's identify you",
     "subtitle": "Please enter or scan your health ID to proceed securely",

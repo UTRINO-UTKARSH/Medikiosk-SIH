@@ -13,8 +13,9 @@ const Auth = ({ setIsAuth,isAuth }) => {
   const [isScanning, setisScanning] = useState(false)
   const Fields = [
     { name: "Full Name", label: "Full Name", required: true },
-    { name: "Token Id", label: "Token Id", required: true },
-    { name: "Date of birth", label: "DOB", required: true, type: 'date' }
+    { name: "Email Id", label: "Email Id", required: true },
+    { name: "Date of birth", label: "DOB", required: true, type: 'date' },
+    { name: "Phone Number", label: "Phone Number", required: true, type: 'number' }
   ];
 
   const handleFormSubmit = async (data) => {

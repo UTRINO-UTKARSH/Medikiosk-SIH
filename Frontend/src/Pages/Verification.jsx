@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Languages } from "lucide-react";
 import { useToast } from "../components/common/Toast";
 import Consent from "../components/Child Pages/Consent";
 import { useTranslation } from "react-i18next";
+import Auth2 from "../components/Auth/Auth2";
 const Verification = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isAuth, setIsAuth] = useState(false);
@@ -63,7 +64,8 @@ const Verification = () => {
     switch (currentStep) {
       case 1:
 
-        return <Auth setIsAuth={setIsAuth} isAuth={isAuth} />;
+        // return <Auth setIsAuth={setIsAuth} isAuth={isAuth} />;
+        return <Auth2  />;
       case 2:
         return <div className="flex items-center justify-center mt-3"><Consent /></div>;
       default:
