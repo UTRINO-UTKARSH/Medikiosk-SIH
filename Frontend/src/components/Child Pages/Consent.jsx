@@ -40,6 +40,7 @@ const Consent = () => {
                 <span className='text-xl text-[#44474a]'>{t('consentPage.consent')}</span>
                 <button onClick={speech} className='flex bg-blue-300 max-w-fit p-4 rounded-lg cursor-pointer gap-2 text-xl items-center'><Volume2 />{t('consentPage.listen')}</button>
             </div>
+            
         </div>
     )
 }
