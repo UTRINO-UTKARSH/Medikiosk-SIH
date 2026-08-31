@@ -129,12 +129,12 @@ exports.sendOTP = async (req, res) => {
         });
 
         const mailOptions = {
-            from: `"MediKiosk Check-In" <${process.env.EMAIL_USER}>`,
+            from: `"Parchi Check-In" <${process.env.EMAIL_USER}>`,
             to: targetEmail,
-            subject: 'Your MediKiosk Login OTP',
+            subject: 'Your Parchi Login OTP',
             html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; color: #172554;">
-                    <h2>MediKiosk Authentication</h2>
+                    <h2>Parchi Authentication</h2>
                     <p>Your one-time password for login is:</p>
                     <h1 style="letter-spacing: 5px; color: #1e3a8a;">${otp}</h1>
                     <p>This code is valid for 10 minutes.</p>
@@ -233,3 +233,101 @@ exports.generateQR = async (req, res) => {
         });
     }
 }
+
+exports.getUserHospital = async (req, res) => {
+    try {
+        await connectDb();
+        const token = req.cookies.jwt;
+        
+        if (!token) {
+            return res.status(401).json({ message: "Not authenticated" });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.userId);
+
+        if (!user || !user.hospitalId) {
+            return res.status(404).json({ message: "User or hospital not found" });
+        }
+
+        const Hospital = require('../models/hospitalModel.js');
+        const hospital = await Hospital.findOne({
+            $or: [
+                { hospitalId: user.hospitalId },
+                { hipId: user.hospitalId },
+                { counterId: user.hospitalId }
+            ]
+        });
+
+        if (!hospital) {
+            return res.status(404).json({ message: "Hospital not found in database" });
+        }
+
+        return res.status(200).json({
+            success: true,
+            hospital: {
+                name: hospital.name,
+                hospitalId: hospital.hospitalId,
+                address: hospital.address
+            }
+        });
+
+    } catch (error) {
+        console.error("Get User Hospital Error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+exports.updateUserHospital = async (req, res) => {
+    try {
+        await connectDb();
+        const token = req.cookies.jwt;
+        const { hospitalId } = req.body;
+
+        if (!token) {
+            return res.status(401).json({ message: "Not authenticated" });
+        }
+
+        if (!hospitalId) {
+            return res.status(400).json({ message: "Hospital ID is required" });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findByIdAndUpdate(
+            decoded.userId,
+            { hospitalId: hospitalId },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const Hospital = require('../models/hospitalModel.js');
+        const hospital = await Hospital.findOne({
+            $or: [
+                { hospitalId: hospitalId },
+                { hipId: hospitalId },
+                { counterId: hospitalId }
+            ]
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Hospital updated successfully",
+            user: {
+                _id: user._id,
+                phoneNumber: user.phoneNumber,
+                hospitalId: user.hospitalId
+            },
+            hospital: hospital ? {
+                name: hospital.name,
+                address: hospital.address
+            } : null
+        });
+
+    } catch (error) {
+        console.error("Update User Hospital Error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};

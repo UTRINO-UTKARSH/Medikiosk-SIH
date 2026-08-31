@@ -78,10 +78,8 @@ const OtpModal = ({ isOpen, onClose, onSubmit, email }) => {
 
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter Verification Code</h2>
-          <p className="text-sm text-gray-500">
-            We've sent a 6-digit OTP to your registered email for the mail <br/>
-            <span className="font-semibold text-blue-950">{email}</span>
-          </p>
+          <p className="text-sm text-gray-500 mb-3">We've sent a 6-digit OTP to:</p>
+          <p className="text-lg font-semibold text-blue-950 break-all px-2">{email}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6"> 

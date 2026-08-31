@@ -93,7 +93,7 @@ const Auth2 = ({ onVerified }) => {
                         <div>
                             <div className="mb-8 h-1.5 w-12 rounded-full bg-blue-950" />
                             <h1 className="max-w-xs text-3xl font-bold leading-tight text-gray-950 sm:text-4xl">
-                                {t("authPage2.title", "Welcome to MediKiosk")}
+                                {t("authPage2.title", "Welcome to Parchi")}
                             </h1>
                             <p className="mt-4 max-w-sm text-base leading-7 text-gray-500">
                                 {needsEmail
@@ -150,7 +150,7 @@ const Auth2 = ({ onVerified }) => {
                 </div>
 
                 <div className="relative hidden min-h-130 overflow-hidden bg-blue-950 md:block">
-                    <img src={bgImage} alt="MediKiosk care team" className="absolute inset-0 h-full w-full object-cover" />
+                    <img src={bgImage} alt="Parchi care team" className="absolute inset-0 h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-blue-950/15" />
                 </div>
             </div>
@@ -159,7 +159,7 @@ const Auth2 = ({ onVerified }) => {
                 isOpen={otpSent}
                 onClose={() => setOtpSent(false)}
                 onSubmit={handleVerifyOTP}
-                email={phoneNumber}
+                email={email}
             />
 
         </div>

@@ -21,6 +21,11 @@ const userSchema = new mongoose.Schema({
     password:{
         type:String,
         required:false
+    },
+    hospitalId:{
+        type:String,
+        required:false,
+        ref:'Hospital'
     }
 },{timestamps:true})
 module.exports = mongoose.model("User",userSchema)

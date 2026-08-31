@@ -2,9 +2,13 @@
 import React, { useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { useHospitalScanner } from '../hooks/useHospitalScanner'; // Adjust path as needed
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Changed from Link
+import { useHospital } from '../context/HospitalContext'; // 1. Import your new Context Hook
 
 const HospitalQR = ({ isOpen, onClose }) => {
+    const navigate = useNavigate();
+    const { setHospitalName, setHospitalId } = useHospital(); // 2. Access the memory vault
+
     const { 
         isScanning, 
         isLoading, 
@@ -16,17 +20,50 @@ const HospitalQR = ({ isOpen, onClose }) => {
         onClose();
     }); 
 
-    // 2. Clean up the scanner state whenever the modal closes
     useEffect(() => {
         if (!isOpen) {
             resetScanner();
         }
-    }, [isOpen,resetScanner]);
+    }, [isOpen, resetScanner]);
 
-    // 3. The most important part: If it's not open, render absolutely nothing!
     if (!isOpen) return null;
 
-    // Helper function to render the inner content based on state
+    // 3. New function to handle the Continue action securely
+    const onContinue = async () => {
+        // Save the scanned details directly to global memory
+        if (hospitalDetails) {
+            setHospitalName(hospitalDetails.name);
+            // Prefer the hospital's own canonical hospitalId; only fall back
+            // to counterId/hipId if it's somehow missing from the payload.
+            const hospitalId = hospitalDetails.hospitalId || hospitalDetails.counterId || hospitalDetails.hipId;
+            setHospitalId(hospitalId);
+            
+            // Save hospital ID to database
+            try {
+                const response = await fetch('http://localhost:3001/api/users/hospital', {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ hospitalId: hospitalId })
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to save hospital ID to database');
+                }
+            } catch (error) {
+                console.error('Error saving hospital:', error);
+            }
+        }
+
+        // Fire your existing token generation logic
+        await handleGetToken(); 
+        
+        // Navigate to the dashboard programmatically
+        navigate('/user-dash');
+    };
+
     const renderContent = () => {
         if (isLoading) {
             return <div className="p-10 text-center font-bold text-blue-950">Fetching Hospital Details...</div>;
@@ -48,13 +85,13 @@ const HospitalQR = ({ isOpen, onClose }) => {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        <Link to="/user-dash">
+                        {/* 4. Swapped <Link> for a standard button onClick */}
                         <button 
-                            onClick={handleGetToken}
+                            onClick={onContinue}
                             className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition"
                         >
                             Continue
-                        </button></Link>
+                        </button>
                         <button 
                             onClick={resetScanner}
                             className="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-200 transition"
@@ -85,18 +122,13 @@ const HospitalQR = ({ isOpen, onClose }) => {
         );
     };
 
-    // 4. Wrap everything in a Modal Backdrop
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            {/* Dark Backdrop that closes the modal when clicked */}
             <div 
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
                 onClick={onClose} 
             />
-
-            {/* Modal Content Box */}
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 overflow-hidden animate-in zoom-in-95 duration-200">
-                {/* Close Button */}
                 <button 
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 z-10 text-xl font-bold"

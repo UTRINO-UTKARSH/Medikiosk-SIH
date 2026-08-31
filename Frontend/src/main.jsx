@@ -4,10 +4,13 @@ import './index.css'
 import App from './App.jsx'
 import { ToastProvider } from './components/common/Toast.jsx'
 import './i18next.js'
+import { HospitalProvider } from './components/context/HospitalContext.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ToastProvider>
-      <App />
-    </ToastProvider>
+    <HospitalProvider>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </HospitalProvider>
   </StrictMode>,
 )

@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
 import { Camera, ChevronRight, File } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const UploadDocuments = () => {
   return (
@@ -52,12 +53,13 @@ const UploadDocuments = () => {
         </button>
 
         {/* Skip Button */}
+        <Link to='' >
         <button className="w-full mt-2 h-14 md:h-16 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-xl flex items-center justify-center transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200">
           <span className="text-lg md:text-xl font-greet text-gray-700 font-bold">
             Skip for now
           </span>
         </button>
-        
+        </Link>
       </div>
     </div>
   );

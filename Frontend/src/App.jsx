@@ -13,7 +13,7 @@ import AI from './Pages/AI';
 import UploadDocuments from './Pages/UploadDocuments';
 import UserDash from './components/User-dash/UserDash';
 
-const publicRoutes = ['/', '/auth', '/login'];
+const publicRoutes = ['/', '/auth', '/login','/user-dash'];
 
 const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
