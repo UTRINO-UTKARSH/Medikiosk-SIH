@@ -4,10 +4,10 @@ import { CircleQuestionMark, CircleUser, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-const Navbar = ({ Logo, LogoTitle = "Parchi", HelpText = "Help", UserText = "User", showLanguage, showHelp, showUser, onHelpClick,
+const Navbar = ({ Logo, showLanguage, showHelp, showUser, onHelpClick,
   onUserClick,
 }) => {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const languages = [
     { code: "en", label: "English" },
     { code: "hi", label: "हिंदी" },
@@ -32,11 +32,11 @@ const Navbar = ({ Logo, LogoTitle = "Parchi", HelpText = "Help", UserText = "Use
               <img
                 src={Logo}
                 className="block w-9 md:w-12 lg:w-14 h-9 md:h-12 lg:h-14 object-contain shrink-0"
-                alt={`${LogoTitle} Logo`}
+                alt="Logo"
               />
             )}
             <span className="text-xl md:text-3xl lg:text-4xl font-greet font-bold text-white leading-none">
-              {LogoTitle}
+              {t('common.appName')}
             </span>
           </div>
 
@@ -58,7 +58,7 @@ const Navbar = ({ Logo, LogoTitle = "Parchi", HelpText = "Help", UserText = "Use
                 onClick={onHelpClick}
               >
                 <CircleQuestionMark className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
-                <span className="hidden sm:block font-medium">{HelpText}</span>
+                <span className="hidden sm:block font-medium">{t('navbar.help')}</span>
               </div>
             )}
 
@@ -69,7 +69,7 @@ const Navbar = ({ Logo, LogoTitle = "Parchi", HelpText = "Help", UserText = "Use
                   onClick={onUserClick}
                 >
                   <CircleUser className="w-6 h-6 md:w-7 md:h-7" />
-                  <span className="hidden sm:block font-medium">{UserText}</span>
+                  <span className="hidden sm:block font-medium">{t('navbar.user')}</span>
                 </div>
               </Link>
             )}

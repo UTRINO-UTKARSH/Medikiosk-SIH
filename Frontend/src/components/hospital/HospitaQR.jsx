@@ -4,9 +4,11 @@ import { Scanner } from '@yudiel/react-qr-scanner';
 import { useHospitalScanner } from '../hooks/useHospitalScanner'; // Adjust path as needed
 import { useNavigate } from 'react-router-dom'; // Changed from Link
 import { useHospital } from '../context/HospitalContext'; // 1. Import your new Context Hook
+import { useTranslation } from 'react-i18next';
 
 const HospitalQR = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { setHospitalName, setHospitalId } = useHospital(); // 2. Access the memory vault
 
     const { 
@@ -66,21 +68,21 @@ const HospitalQR = ({ isOpen, onClose }) => {
 
     const renderContent = () => {
         if (isLoading) {
-            return <div className="p-10 text-center font-bold text-blue-950">Fetching Hospital Details...</div>;
+            return <div className="p-10 text-center font-bold text-blue-950">{t('hospitalQR.fetchingHospital')}</div>;
         }
 
         if (hospitalDetails) {
             return (
                 <div className="w-full">
-                    <h2 className="text-xl font-bold text-blue-950 mb-4 border-b pb-2">Share Profile</h2>
+                    <h2 className="text-xl font-bold text-blue-950 mb-4 border-b pb-2">{t('hospitalQR.shareProfile')}</h2>
                     
                     <div className="mb-6">
-                        <p className="text-sm text-gray-500">Sharing your details with:</p>
+                        <p className="text-sm text-gray-500">{t('hospitalQR.sharingWith')}</p>
                         <p className="font-bold text-lg">{hospitalDetails.name}</p>
                         <p className="text-sm text-gray-700 mt-2">{hospitalDetails.address}</p>
                         <div className="flex gap-4 mt-2 text-sm text-gray-600">
-                            <span>Counter ID: {hospitalDetails.counterId}</span>
-                            <span>HIP ID: {hospitalDetails.hipId}</span>
+                            <span>{t('hospitalQR.counterId')} {hospitalDetails.counterId}</span>
+                            <span>{t('hospitalQR.hipId')} {hospitalDetails.hipId}</span>
                         </div>
                     </div>
 
@@ -90,13 +92,13 @@ const HospitalQR = ({ isOpen, onClose }) => {
                             onClick={onContinue}
                             className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition"
                         >
-                            Continue
+                            {t('hospitalQR.continue')}
                         </button>
                         <button 
                             onClick={resetScanner}
                             className="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-200 transition"
                         >
-                            Cancel
+                            {t('hospitalQR.cancel')}
                         </button>
                     </div>
                 </div>
@@ -105,7 +107,7 @@ const HospitalQR = ({ isOpen, onClose }) => {
 
         return (
             <div className="w-full">
-                <h2 className="text-xl font-bold text-center text-blue-950 mb-4">Scan Hospital QR</h2>
+                <h2 className="text-xl font-bold text-center text-blue-950 mb-4">{t('hospitalQR.title')}</h2>
                 <div className="rounded-2xl overflow-hidden border-4 border-blue-950 aspect-square">
                     {isScanning && (
                         <Scanner 
@@ -116,7 +118,7 @@ const HospitalQR = ({ isOpen, onClose }) => {
                     )}
                 </div>
                 <p className="text-center text-sm text-gray-500 mt-4">
-                    Point your camera at the hospital's QR code to link your records.
+                    {t('hospitalQR.scanInstruction')}
                 </p>
             </div>
         );

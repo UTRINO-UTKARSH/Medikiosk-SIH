@@ -2,18 +2,20 @@
 import React from 'react';
 import { Camera, ChevronRight, File } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const UploadDocuments = () => {
+  const { t } = useTranslation();
   return (
     <div className="w-full min-h-full  flex flex-col items-center px-4 py-21 bg-white">
       
       {/* Header Section */}
       <div className="text-center w-full max-w-2xl mb-8 md:mb-12">
         <h3 className="text-3xl md:text-4xl text-blue-950 font-greet font-bold mb-3 md:mb-4">
-          Do you have previous medical documents?
+          {t('uploadDocuments.title')}
         </h3>
         <p className="text-lg md:text-xl text-gray-500 font-greet font-normal px-2">
-          You can add prescriptions, reports, or discharge papers to help us understand your medical history better.
+          {t('uploadDocuments.subtitle')}
         </p>
       </div>
       <div className="flex flex-col w-full max-w-lg gap-4 md:gap-5">
@@ -24,10 +26,10 @@ const UploadDocuments = () => {
             </div>
             <div>
               <h5 className="text-xl md:text-2xl font-bold text-blue-950 font-greet">
-                Take a Photo
+                {t('uploadDocuments.takePhoto')}
               </h5>
               <p className="font-normal text-sm md:text-base text-gray-600 font-greet mt-1">
-                Use the Kiosk camera to scan
+                {t('uploadDocuments.takePhotoDesc')}
               </p>
             </div>
           </div>
@@ -42,10 +44,10 @@ const UploadDocuments = () => {
             </div>
             <div>
               <h5 className="text-xl md:text-2xl font-bold text-blue-950 font-greet">
-                Upload Document
+                {t('uploadDocuments.uploadDocument')}
               </h5>
               <p className="font-normal text-sm md:text-base text-gray-600 font-greet mt-1">
-                From a USB drive or a mobile device
+                {t('uploadDocuments.uploadDocumentDesc')}
               </p>
             </div>
           </div>
@@ -56,7 +58,7 @@ const UploadDocuments = () => {
         <Link to='' >
         <button className="w-full mt-2 h-14 md:h-16 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-xl flex items-center justify-center transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200">
           <span className="text-lg md:text-xl font-greet text-gray-700 font-bold">
-            Skip for now
+            {t('uploadDocuments.skipForNow')}
           </span>
         </button>
         </Link>

@@ -13,16 +13,16 @@ const Bottom = () => {
         <Link onClick={() => {
           i18n.changeLanguage('en')
         }}>
-          <Buttons text={"English"} design={"px-2 md:px-6 py-2 cursor-pointer border-2 rounded-[5px] font-medium text-[20px] md:text-[24px] text-blue-950 border-gray-400 m-2 md:m-4 bg-white"} />
+          <Buttons text={t('common.english')} design={"px-2 md:px-6 py-2 cursor-pointer border-2 rounded-[5px] font-medium text-[20px] md:text-[24px] text-blue-950 border-gray-400 m-2 md:m-4 bg-white"} />
         </Link>
         <Link onClick={() => {
           i18n.changeLanguage('hi')
         }}>
-          <Buttons text={" हिन्दी(Hindi)"} design={"px-2 md:px-6 py-2 cursor-pointer border-2 rounded-[5px] font-medium text-[20px] md:text-[24px] text-blue-950 border-gray-400 m-2 md:m-4 bg-white"} />
+          <Buttons text={t('common.hindi')} design={"px-2 md:px-6 py-2 cursor-pointer border-2 rounded-[5px] font-medium text-[20px] md:text-[24px] text-blue-950 border-gray-400 m-2 md:m-4 bg-white"} />
 
         </Link>
         <Link>
-          <Buttons text={"मराठी(Marathi)"} design={"px-2 md:px-6 py-2 cursor-pointer border-2 rounded-[5px] font-medium text-[20px] md:text-[24px] text-blue-950 border-gray-400 m-2 md:m-4 bg-white"} />
+          <Buttons text={t('common.marathi')} design={"px-2 md:px-6 py-2 cursor-pointer border-2 rounded-[5px] font-medium text-[20px] md:text-[24px] text-blue-950 border-gray-400 m-2 md:m-4 bg-white"} />
 
         </Link>
       </div>

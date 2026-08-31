@@ -24,7 +24,7 @@ const Middle = () => {
           </div>
         </Link>
 
-        <div onClick={()=>toast.info("Please visit the nearest counter or ask any nurse")} className="cursor-pointer h-18 w-40 md:w-60 bg-gray-300 rounded-lg flex justify-center items-center mt-6 ml-3">
+        <div onClick={()=>toast.info(t('homePage.helpMessage'))} className="cursor-pointer h-18 w-40 md:w-60 bg-gray-300 rounded-lg flex justify-center items-center mt-6 ml-3">
           <div className="flex justify-between w-20 font-bold text-black font-robot text-xl md:text-2xl items-center">
             <CircleQuestionMark />
             {t('homePage.help')}

@@ -44,14 +44,14 @@ const UserDash = () => {
               title="AI Summary"
               description="Generate concise, AI-powered overviews of recent consultations and patient history."
               cta="Generate now"
-              onClick={() => navigate("/ai-consultation")}
+              onClick={() => navigate("/ai")}
             />
             <ServiceCard
               icon={<FlaskConical size={20} className="text-white" />}
               title="Lab Reports"
               description="Access, view, and print recent pathology, radiology, and diagnostic test results."
               cta="View results"
-              onClick={() => navigate("/reports")}
+              onClick={() => navigate("/user-reports")}
             />
           </div>
         </div>

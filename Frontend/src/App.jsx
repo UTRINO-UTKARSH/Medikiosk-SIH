@@ -12,6 +12,10 @@ import HospitalQRGenerator from './components/hospital/HospitalQRGEN';
 import AI from './Pages/AI';
 import UploadDocuments from './Pages/UploadDocuments';
 import UserDash from './components/User-dash/UserDash';
+import LabReport from './components/User-dash/LabReport';
+import Download from './components/User-dash/Download';
+import TimeTable from './components/User-dash/TimeTable';
+import Medicalhistory from './components/User-dash/Medicalhistory';
 
 const publicRoutes = ['/', '/auth', '/login','/user-dash'];
 
@@ -91,6 +95,10 @@ const AppContent = () => {
         <Route path="/consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><GATE /></ProtectedRoute>} />
         <Route path="/user-dash" element={<ProtectedRoute><UserDash /></ProtectedRoute>} />
+        <Route path="/user-reports" element={<ProtectedRoute><LabReport /></ProtectedRoute>} />
+        <Route path="/download" element={<ProtectedRoute><Download /></ProtectedRoute>} />
+        <Route path="/time-table" element={<ProtectedRoute><TimeTable /></ProtectedRoute>} />
+        <Route path="/medical-history" element={<ProtectedRoute><Medicalhistory /></ProtectedRoute>} />
 
         {/* Protected Routes - Other Features */}
         <Route path="/upload" element={<ProtectedRoute><UploadDocuments /></ProtectedRoute>} />

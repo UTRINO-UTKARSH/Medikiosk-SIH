@@ -2,32 +2,123 @@
   "homePage": {
     "welcome": "Welcome to Parchi",
     "subtitle": "We'll help you share your health information with",
-    "subtitle2":"your doctor clearly and easily.",
+    "subtitle2": "your doctor clearly and easily.",
     "start": "Start",
-    "help":"Help",
+    "help": "Help",
     "chooseLanguage": "Choose your language"
   },
-  "authPage2":{
-    "title":"Let's get started",
-    "subtitle":"Please enter your email address to begin the registration process.",
-    "emailLable":"Email Address",
-    "back":"Back",
-    "continue":"Continue"
+  "authPage2": {
+    "title": "Let's get started",
+    "subtitle": "Please enter your email address to begin the registration process.",
+    "emailLabel": "Email Address",
+    "back": "Back",
+    "continue": "Continue"
   },
   "authPage": {
     "title": "Let's identify you",
     "subtitle": "Please enter or scan your health ID to proceed securely",
-    "subtitle2":"To proceed safely.",
+    "subtitle2": "To proceed safely.",
     "scan": "Scan",
-    "tokenid":"TOKEN ID",
+    "tokenid": "TOKEN ID",
     "enter": "Enter",
     "noToken": "I don't have a TOKEN ID",
     "stepText": "STEP 1 OF 5",
-    "stepTitle": "IDENTITY CONSENT"
+    "stepTitle": "IDENTITY CONSENT",
+    "patientDetails": "Patient Details",
+    "patientLoggedIn": "Patient logged In",
+    "invalidQRCode": "Invalid QR Code.",
+    "loginFailed": "Login failed",
+    "pleaseEnterCorrectDetails": "Please enter correct details",
+    "cancelScanning": "Cancel Scanning"
   },
-  "consentPage":{
-    "title":"Before we begin",
-    "consent":"We will ask questions about your health and may use your previous medical document to prepare information for doctor.",
-    "listen":"Listen to this"
+  "consentPage": {
+    "title": "Before we begin",
+    "consent": "We will ask questions about your health and may use your previous medical document to prepare information for doctor.",
+    "listen": "Listen to this"
+  },
+  "otpModal": {
+    "title": "Enter Verification Code",
+    "subtitle": "We've sent a 6-digit OTP to:",
+    "verifyLogin": "Verify & Login",
+    "submit": "Submit"
+  },
+  "navbar": {
+    "help": "Help",
+    "user": "User",
+    "language": "Language"
+  },
+  "uploadDocuments": {
+    "title": "Do you have previous medical documents?",
+    "subtitle": "You can add prescriptions, reports, or discharge papers to help us understand your medical history better.",
+    "takePhoto": "Take a Photo",
+    "takePhotoDesc": "Use the Kiosk camera to scan",
+    "uploadDocument": "Upload Document",
+    "uploadDocumentDesc": "From a USB drive or a mobile device",
+    "skipForNow": "Skip for now"
+  },
+  "aiChat": {
+    "greeting": "Hello! I am your ClinScribe AI. Can you tell me what symptoms brought you to the hospital today?",
+    "inputPlaceholder": "Type your message here...",
+    "send": "Send",
+    "transcribing": "Transcribing...",
+    "microphoneAccessDenied": "Microphone access denied",
+    "transcriptionError": "Transcription error",
+    "generateSummary": "Generate Summary",
+    "viewSummary": "View Summary",
+    "downloadSummary": "Download Summary",
+    "closeSummary": "Close"
+  },
+  "userDash": {
+    "title": "How can we assist you today?",
+    "subtitle": "Select a service to proceed with your patient records or diagnostics.",
+    "aiSummary": "AI Summary",
+    "aiSummaryDesc": "Generate concise, AI-powered overviews of recent consultations and patient history.",
+    "aiSummaryCta": "Generate now",
+    "labReports": "Lab Reports",
+    "labReportsDesc": "Access, view, and print recent pathology, radiology, and diagnostic test results.",
+    "labReportsCta": "View results",
+    "download": "Download"
+  },
+  "userNav": {
+    "home": "Home",
+    "download": "Download",
+    "timeTable": "Time Table",
+    "medicalHistory": "Medical History",
+    "language": "Language",
+    "help": "Help",
+    "profile": "Profile"
+  },
+  "gate": {
+    "welcome": "Welcome to Parchi",
+    "selectOption": "Please select an option to begin your session",
+    "scanHospitalQR": "Scan Hospital QR",
+    "scanQRDesc": "Scan your hospital's QR code to link your records and begin your visit seamlessly.",
+    "instantAISummary": "Instant AI Summary",
+    "aiSummaryDesc": "Speak with our AI to get an immediate summary of your symptoms and suggested remedies."
+  },
+  "hospitalQR": {
+    "title": "Scan Hospital QR",
+    "scanInstruction": "Point your camera at the hospital's QR code to link your records.",
+    "fetchingHospital": "Fetching Hospital Details...",
+    "shareProfile": "Share Profile",
+    "sharingWith": "Sharing your details with:",
+    "counterId": "Counter ID:",
+    "hipId": "HIP ID:",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "invalidQR": "Invalid QR Code"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "close": "Close",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "next": "Next",
+    "previous": "Previous",
+    "goToCounter": "Please go to the counter for your token",
+    "appName":"Parchi"
   }
 }

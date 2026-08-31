@@ -36,17 +36,17 @@ const Auth = ({ setIsAuth,isAuth }) => {
 
       const respose = await res.json();
       if (!res.ok) {
-        throw new Error(respose.message || 'Login failed');
+        throw new Error(respose.message || t('authPage.loginFailed'));
       }
 
       setIsAuth(true);
-      toast.success("Patient logged In");
+      toast.success(t('authPage.patientLoggedIn'));
       setisScanning(false)
       setModelOpen(false);
     } catch (error) {
       setIsAuth(false);
       console.log("No user found: ", error);
-      toast.error(error.message || "Please enter correct details");
+      toast.error(error.message || t('authPage.pleaseEnterCorrectDetails'));
     }
   };
   const handelScan = (text) =>{
@@ -57,7 +57,7 @@ const Auth = ({ setIsAuth,isAuth }) => {
       }
       
     } catch (error) {
-       toast.error("Invalid QR Code.")
+       toast.error(t('authPage.invalidQRCode'))
        setisScanning
     }
     
@@ -136,7 +136,7 @@ const Auth = ({ setIsAuth,isAuth }) => {
             isOpen={ModelOpen}
             onClose={() => setModelOpen(false)}
             onSubmit={handleFormSubmit}
-            title="Patient Details"
+            title={t('authPage.patientDetails')}
             fields={Fields}
           />
         </div>

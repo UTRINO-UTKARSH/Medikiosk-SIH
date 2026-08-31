@@ -2,8 +2,10 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const OtpModal = ({ isOpen, onClose, onSubmit, email }) => {
+  const { t } = useTranslation();
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const inputRefs = useRef([]);
  
@@ -77,8 +79,8 @@ const OtpModal = ({ isOpen, onClose, onSubmit, email }) => {
         </button>
 
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter Verification Code</h2>
-          <p className="text-sm text-gray-500 mb-3">We've sent a 6-digit OTP to:</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('otpModal.title')}</h2>
+          <p className="text-sm text-gray-500 mb-3">{t('otpModal.subtitle')}</p>
           <p className="text-lg font-semibold text-blue-950 break-all px-2">{email}</p>
         </div>
 
@@ -104,7 +106,7 @@ const OtpModal = ({ isOpen, onClose, onSubmit, email }) => {
             disabled={otp.join("").length !== 6}
             className="w-full py-3.5 mt-2 rounded-xl bg-blue-950 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold text-lg hover:bg-blue-900 transition-colors shadow-md"
           >
-            Verify & Login
+            {t('otpModal.verifyLogin')}
           </button>
         </form>
       </div>

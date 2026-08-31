@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, Send, Bot, User, FileText, X, Square } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // --- Custom Hook for Audio Recording (UNCHANGED) ---
 function useAudioRecorder(onTranscriptionComplete) {
@@ -60,6 +61,7 @@ function useAudioRecorder(onTranscriptionComplete) {
 
 // --- Main Chatbot UI ---
 const AI = () => {
+  const { t } = useTranslation();
   const [patientInput, setPatientInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
@@ -68,7 +70,7 @@ const AI = () => {
   const chatEndRef = useRef(null);
 
   const [messages, setMessages] = useState([
-    { role: "ai", text: "Hello! I am your ClinScribe AI. Can you tell me what symptoms brought you to the hospital today?" }
+    { role: "ai", text: t('aiChat.greeting') }
   ]);
 
   // Auto-scroll to bottom when messages change
@@ -102,21 +104,21 @@ const AI = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "The AI service returned an error.");
+        throw new Error(data.error || t('aiChat.aiServiceError'));
       }
       if (typeof data.response !== "string") {
-        throw new Error("The AI service returned an invalid response.");
+        throw new Error(t('aiChat.invalidResponse'));
       }
 
       const parsed = JSON.parse(data.response);
-      setMessages((prev) => [...prev, { role: "ai", text: parsed.chatReply || "I understand. Please tell me more." }]);
+      setMessages((prev) => [...prev, { role: "ai", text: parsed.chatReply || t('aiChat.defaultReply') }]);
       setParsedData(parsed);
 
     } catch (error) {
       console.error("AI chat error:", error);
       setMessages((prev) => [...prev, {
         role: "ai",
-        text: error.message || "I'm having trouble connecting to the server. Please try again."
+        text: error.message || t('aiChat.connectionError')
       }]);
     } finally {
       setIsLoading(false);
@@ -153,7 +155,7 @@ const AI = () => {
             className="bg-orange-500 hover:bg-orange-600 transition px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"
           >
             <FileText size={16} />
-            <span className="hidden md:inline">View Summary</span>
+            <span className="hidden md:inline">{t('aiChat.viewSummary')}</span>
           </button>
         </div>
 
@@ -210,7 +212,7 @@ const AI = () => {
               type="text"
               value={patientInput}
               onChange={(e) => setPatientInput(e.target.value)}
-              placeholder={isRecording ? "Listening..." : isTranscribing ? "Transcribing..." : "Type your symptoms..."}
+              placeholder={isRecording ? t('aiChat.listening') : isTranscribing ? t('aiChat.transcribing') : t('aiChat.typeSymptoms')}
               disabled={isRecording || isTranscribing || isLoading}
               className="flex-1 bg-gray-100 border border-transparent focus:border-blue-950 focus:bg-white rounded-xl px-4 h-13 outline-none transition disabled:opacity-50"
             />
@@ -232,7 +234,7 @@ const AI = () => {
           
           <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="bg-blue-950 p-4 flex justify-between items-center text-white">
-              <h3 className="font-bold text-lg flex items-center gap-2"><FileText size={20}/> Physician Summary</h3>
+              <h3 className="font-bold text-lg flex items-center gap-2"><FileText size={20}/> {t('aiChat.physicianSummary')}</h3>
               <button onClick={() => setShowSummary(false)} className="hover:text-gray-300"><X size={24}/></button>
             </div>
             
@@ -241,17 +243,17 @@ const AI = () => {
                 <div className="flex flex-col gap-4">
                   <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                     <div>
-                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">Patient Name</p>
-                      <p className="font-medium text-gray-900">{parsedData.patientName || 'Not provided'}</p>
+                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">{t('aiChat.patientName')}</p>
+                      <p className="font-medium text-gray-900">{parsedData.patientName || t('aiChat.notProvided')}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">Age</p>
-                      <p className="font-medium text-gray-900">{parsedData.age || 'Not provided'}</p>
+                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">{t('aiChat.age')}</p>
+                      <p className="font-medium text-gray-900">{parsedData.age || t('aiChat.notProvided')}</p>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">Primary Symptoms</p>
+                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">{t('aiChat.primarySymptoms')}</p>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {parsedData.primarySymptoms && parsedData.primarySymptoms.length > 0 ? (
                         parsedData.primarySymptoms.map((sym, idx) => (
@@ -260,23 +262,23 @@ const AI = () => {
                           </span>
                         ))
                       ) : (
-                        <p className="text-sm text-gray-900">No symptoms identified yet.</p>
+                        <p className="text-sm text-gray-900">{t('aiChat.noSymptoms')}</p>
                       )}
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">Medical History</p>
+                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">{t('aiChat.medicalHistory')}</p>
                     <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      {parsedData.medicalHistory || 'None reported'}
+                      {parsedData.medicalHistory || t('aiChat.noneReported')}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">AI Clinical Summary</p>
+                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">{t('aiChat.clinicalSummary')}</p>
                     <div className="p-4 bg-blue-50 border-l-4 border-blue-950 rounded-r-lg">
                       <p className="text-sm text-blue-950 font-medium">
-                        {parsedData.physicianSummary || 'Gathering information...'}
+                        {parsedData.physicianSummary || t('aiChat.gatheringInfo')}
                       </p>
                     </div>
                   </div>
@@ -284,7 +286,7 @@ const AI = () => {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Bot size={48} className="mx-auto mb-3 opacity-20" />
-                  <p>No medical data has been extracted yet.<br/>Start chatting to generate a summary.</p>
+                  <p>{t('aiChat.noDataExtracted')}<br/>{t('aiChat.startChatting')}</p>
                 </div>
               )}
             </div>
