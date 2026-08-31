@@ -5,7 +5,8 @@
     "subtitle2": "your doctor clearly and easily.",
     "start": "Start",
     "help": "Help",
-    "chooseLanguage": "Choose your language"
+    "chooseLanguage": "Choose your language",
+    "helpMessage":"Please go to the helpdesk for further support"
   },
   "authPage2": {
     "title": "Let's get started",
@@ -119,6 +120,9 @@
     "next": "Next",
     "previous": "Previous",
     "goToCounter": "Please go to the counter for your token",
-    "appName":"Parchi"
+    "appName":"Parchi",
+    "english":"English",
+    "hindi":"Hindi",
+    "marathi":"Marathi"
   }
 }

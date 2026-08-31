@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser")
 require('dotenv').config()
 const connectDb = require("./lib/db.js")
 const app = express()
-const port = 3001;
+const port = 3001 || 5000;
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true,
