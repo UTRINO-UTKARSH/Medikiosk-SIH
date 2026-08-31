@@ -150,7 +150,8 @@ exports.sendOTP = async (req, res) => {
         return res.status(200).json({
             success: true,
             isNewUser: !userProfile || !userProfile.name,
-            message: "OTP sent successfully"
+            message: "OTP sent successfully",
+            email:targetEmail
         });
 
     } catch (error) {

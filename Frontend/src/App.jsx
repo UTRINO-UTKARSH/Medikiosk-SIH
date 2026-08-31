@@ -3,7 +3,7 @@ import React from "react";
 import Navbar from "./components/common/Navbar";
 import Home from "./Pages/Home";
 import Verification from './Pages/Verification';
-import Dashboard from './Pages/Dashboard';
+import GATE from './Pages/GATE';
 import Consent from './components/Child Pages/Consent';
 import From from './components/common/From';
 import Login from './components/Auth/Login';
@@ -11,6 +11,8 @@ import { useToast } from './components/common/Toast';
 import HospitalQRGenerator from './components/hospital/HospitalQRGEN';
 import AI from './Pages/AI';
 import UploadDocuments from './Pages/UploadDocuments';
+import UserDash from './components/User-dash/UserDash';
+
 const publicRoutes = ['/', '/auth', '/login'];
 
 const ProtectedRoute = ({ children }) => {
@@ -87,7 +89,8 @@ const AppContent = () => {
 
         {/* Protected Routes - Common for Both Flows */}
         <Route path="/consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><GATE /></ProtectedRoute>} />
+        <Route path="/user-dash" element={<ProtectedRoute><UserDash /></ProtectedRoute>} />
 
         {/* Protected Routes - Other Features */}
         <Route path="/upload" element={<ProtectedRoute><UploadDocuments /></ProtectedRoute>} />

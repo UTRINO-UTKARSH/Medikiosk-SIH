@@ -3,7 +3,7 @@ import React from 'react';
 import { QrCode, Bot } from 'lucide-react';
 import HospitalQR from '../components/hospital/HospitaQR';
 import { useState } from 'react';
-const Dashboard = () => {
+const GATE = () => {
     const [isScanning,setisScanning] = useState(false)
   return (
     <div className="w-full min-h-screen flex flex-col items-center px-4 py-12 md:py-30 bg-white">
@@ -17,11 +17,7 @@ const Dashboard = () => {
           Please select an option to begin your session
         </p>
       </div>
-
-      {/* Options Container */}
       <div className="flex flex-col md:flex-row w-full max-w-5xl justify-center gap-6 md:gap-10 px-4">
-        
-        {/* Option 1: Scan Hospital QR */}
         <button onClick={() => {
             setisScanning(true)
         }} className="flex-1 flex flex-col items-center text-center bg-gray-50 border-2 border-gray-200 rounded-3xl p-8 md:p-12 hover:bg-white hover:border-blue-950 hover:shadow-xl transition-all duration-300 group cursor-pointer">
@@ -37,8 +33,6 @@ const Dashboard = () => {
             </p>
           </div>
         </button>
-
-        {/* Option 2: Instant AI Summary */}
         <button className="flex-1 flex flex-col items-center text-center bg-blue-950 border-2 border-blue-950 rounded-3xl p-8 md:p-12 hover:bg-blue-900 hover:border-blue-900 hover:shadow-xl transition-all duration-300 group cursor-pointer">
           <div className="h-20 w-20 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors flex items-center justify-center mb-6">
             {/* Swapped the second QrCode for a Bot icon to better match the "AI" context */}
@@ -63,4 +57,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default GATE;

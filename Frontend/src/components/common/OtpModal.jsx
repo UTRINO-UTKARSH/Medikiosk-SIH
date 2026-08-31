@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
 
-const OtpModal = ({ isOpen, onClose, onSubmit, phoneNumber }) => {
+const OtpModal = ({ isOpen, onClose, onSubmit, email }) => {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const inputRefs = useRef([]);
  
@@ -79,8 +79,8 @@ const OtpModal = ({ isOpen, onClose, onSubmit, phoneNumber }) => {
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter Verification Code</h2>
           <p className="text-sm text-gray-500">
-            We've sent a 6-digit OTP to your registered email for the number <br/>
-            <span className="font-semibold text-blue-950">+91 {phoneNumber}</span>
+            We've sent a 6-digit OTP to your registered email for the mail <br/>
+            <span className="font-semibold text-blue-950">{email}</span>
           </p>
         </div>
 

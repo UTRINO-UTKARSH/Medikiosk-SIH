@@ -48,7 +48,7 @@ const HospitalQR = ({ isOpen, onClose }) => {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        <Link to="/upload">
+                        <Link to="/user-dash">
                         <button 
                             onClick={handleGetToken}
                             className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition"

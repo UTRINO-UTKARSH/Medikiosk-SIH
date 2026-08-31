@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { ArrowRight, Loader2 } from "lucide-react";  
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useToast } from "../common/Toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -11,15 +11,15 @@ const Auth2 = ({ onVerified }) => {
     const { t } = useTranslation();
     const toast = useToast();
     const navigate = useNavigate();
-    const [phoneNumber, setPhoneNumber] = useState(""); 
+    const [phoneNumber, setPhoneNumber] = useState("");
     const [email, setEmail] = useState("");
-    const [needsEmail, setNeedsEmail] = useState(false);  
-    const [otpSent, setOtpSent] = useState(false);      
+    const [needsEmail, setNeedsEmail] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsLoading(true);  
+        setIsLoading(true);
         try {
             const payload = { phoneNumber };
             if (needsEmail) payload.email = email;
@@ -28,59 +28,61 @@ const Auth2 = ({ onVerified }) => {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-type": "application/json" },
-                body: JSON.stringify(payload)  
+                body: JSON.stringify(payload)
             });
 
             const responseData = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(responseData.message || 'Authentication failed');
             }
-             
+
             if (response.status === 202 && responseData.requireEmail) {
                 setNeedsEmail(true);
                 toast.info("New patient detected. Please provide an email to continue.");
-                return;  
+                return;
             }
-             
+            if (responseData.email) {
+                setEmail(responseData.email);
+            }
             setOtpSent(true);
             toast.success("OTP sent to your email!");
-            
+
         } catch (err) {
             toast.error(err.message || "An unexpected error occurred");
             console.error("Auth Error:", err);
         } finally {
-            setIsLoading(false); 
+            setIsLoading(false);
         }
     }
- 
-   const handleVerifyOTP = async (otpCode) => { 
+
+    const handleVerifyOTP = async (otpCode) => {
         try {
-         const response = await fetch("http://localhost:3001/api/users/verify-otp", {
+            const response = await fetch("http://localhost:3001/api/users/verify-otp", {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-type": "application/json" },
                 body: JSON.stringify({ phoneNumber, otp: otpCode })
             });
             const data = await response.json()
-            if(!response.ok){
-                 throw new Error(data.message || 'Wrong OTP');
+            if (!response.ok) {
+                throw new Error(data.message || 'Wrong OTP');
             }
 
             setOtpSent(false);
             toast.success("Verification successful!");
-            
+
             // --- THE FIX IS HERE ---
             // We combine the backend data with the 'needsEmail' state 
             // which tells Verification.jsx exactly which route to take.
-            onVerified?.({ 
-                ...data, 
-                isNewUser: needsEmail 
+            onVerified?.({
+                ...data,
+                isNewUser: needsEmail
             });
 
         } catch (err) {
             toast.error(err.message || "Try again")
-        } 
+        }
     };
 
     return (
@@ -94,8 +96,8 @@ const Auth2 = ({ onVerified }) => {
                                 {t("authPage2.title", "Welcome to MediKiosk")}
                             </h1>
                             <p className="mt-4 max-w-sm text-base leading-7 text-gray-500">
-                                {needsEmail 
-                                    ? "Please provide an email address for your new account." 
+                                {needsEmail
+                                    ? "Please provide an email address for your new account."
                                     : "Enter your registered phone number to log in."}
                             </p>
 
@@ -104,7 +106,7 @@ const Auth2 = ({ onVerified }) => {
                                 type="tel"
                                 value={phoneNumber}
                                 onChange={(e) => setPhoneNumber(e.target.value)}
-                                disabled={needsEmail || isLoading} 
+                                disabled={needsEmail || isLoading}
                                 placeholder="10-digit number"
                                 maxLength="10"
                                 className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3.5 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-950/10 disabled:bg-gray-100"
@@ -117,7 +119,7 @@ const Auth2 = ({ onVerified }) => {
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        disabled={isLoading} 
+                                        disabled={isLoading}
                                         placeholder="you@example.com"
                                         required
                                         className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3.5 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:ring-4 focus:ring-blue-950/10"
@@ -129,7 +131,7 @@ const Auth2 = ({ onVerified }) => {
                         <div className="mt-10 flex items-center justify-between border-t border-gray-200 pt-5">
                             <button type="button" onClick={() => navigate("/")} className="cursor-pointer font-medium text-gray-600 transition hover:text-gray-950">Back</button>
                             <button
-                                type="submit" 
+                                type="submit"
                                 disabled={phoneNumber.length !== 10 || (needsEmail && !email) || isLoading}
                                 className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-blue-950 px-5 py-3 font-semibold text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-40"
                             >
@@ -152,12 +154,12 @@ const Auth2 = ({ onVerified }) => {
                     <div className="absolute inset-0 bg-blue-950/15" />
                 </div>
             </div>
- 
-            <OtpModal 
-                isOpen={otpSent} 
-                onClose={() => setOtpSent(false)} 
+
+            <OtpModal
+                isOpen={otpSent}
+                onClose={() => setOtpSent(false)}
                 onSubmit={handleVerifyOTP}
-                phoneNumber={phoneNumber}
+                email={phoneNumber}
             />
 
         </div>
