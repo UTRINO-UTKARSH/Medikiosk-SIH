@@ -75,14 +75,7 @@ const AppRoutes = () => {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
-  )
-}
-const App = () => {
-  return (
-    <BrowserRouter>
-        <AppRoutes/>
-    </BrowserRouter>
   );
 };
 
-export default App;
+export default ReviewDoc;
