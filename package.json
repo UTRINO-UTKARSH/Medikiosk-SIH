@@ -1,0 +1,11 @@
+{
+    "scripts": {
+    "frontend": "npm run dev --prefix frontend",
+    "backend": "npm run dev --prefix backend",
+    "python": "python python-server/main.py",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\" \"npm run python\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

@@ -1,9 +1,10 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import { Camera, ChevronRight, File } from 'lucide-react';
 
 const UploadDocuments = () => {
   return (
-    <div className="w-full flex flex-col items-center px-4 py-8 md:py-12 bg-white">
+    <div className="w-full min-h-full  flex flex-col items-center px-4 py-21 bg-white">
       
       {/* Header Section */}
       <div className="text-center w-full max-w-2xl mb-8 md:mb-12">
@@ -14,11 +15,7 @@ const UploadDocuments = () => {
           You can add prescriptions, reports, or discharge papers to help us understand your medical history better.
         </p>
       </div>
-
-      {/* Action Buttons Container */}
       <div className="flex flex-col w-full max-w-lg gap-4 md:gap-5">
-        
-        {/* Camera Option */}
         <button className="w-full bg-gray-100 hover:bg-gray-200 transition-colors rounded-2xl flex p-4 md:p-6 items-center justify-between group cursor-pointer text-left border-2 border-transparent focus:border-blue-950 focus:outline-none">
           <div className="flex items-center gap-4 md:gap-5">
             <div className="shrink-0 h-14 w-14 md:h-16 md:w-16 rounded-full bg-blue-950 flex items-center justify-center">

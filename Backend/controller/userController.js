@@ -5,20 +5,79 @@ const jwt = require('jsonwebtoken');
 const validator = require("validator");
 const nodemailer = require('nodemailer');
 const connectDb = require('../lib/db.js');
-// const QRCode = require('qrcode'); // Uncomment if needed later
- 
-exports.checkAuth = (req, res) => {
+const bcrypt = require('bcryptjs');
+exports.checkAuth = async (req, res) => {
     const token = req.cookies.jwt;
     if (!token) return res.status(401).json({ authenticated: false });
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        res.status(200).json({ authenticated: true, userId: decoded.userId });
+        const user = await User.findById(decoded.userId).select('phoneNumber name age');
+        
+        if (!user) return res.status(401).json({ authenticated: false });
+
+        res.status(200).json({ 
+            authenticated: true, 
+            userId: user._id,
+            phoneNumber: user.phoneNumber 
+        });
     } catch {
         res.status(401).json({ authenticated: false });
     }
-}
- 
+};
+
+exports.login = async (req, res) => {
+    try {
+        const { phoneNumber, password } = req.body;
+        const token = req.cookies.jwt;
+
+        if (!password) {
+            return res.status(400).json({ message: "Password is required" });
+        }
+
+        let user = null;
+
+        // 1. Try finding by active JWT session cookie
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                user = await User.findById(decoded.userId);
+            } catch (err) {
+                // Token invalid/expired; fall through to phoneNumber query
+            }
+        }
+
+        // 2. Fallback: Query by phone number if JWT wasn't found/valid
+        if (!user && phoneNumber) {
+            user = await User.findOne({ phoneNumber });
+        }
+
+        if (!user || !user.password) {
+            return res.status(400).json({ message: "Account or password not found. Please complete profile setup." });
+        }
+
+        // 3. Compare password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Incorrect password. Please try again." });
+        }
+
+        // 4. Re-issue JWT cookie session
+        generateToken(res, user._id);
+
+        return res.status(200).json({
+            success: true,
+            isNewUser: !user.name || !user.age,
+            message: "Login successful",
+            userId: user._id
+        });
+
+    } catch (error) {
+        console.error("Login Error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 exports.sendOTP = async (req, res) => {
     await connectDb();
     try {
@@ -32,30 +91,30 @@ exports.sendOTP = async (req, res) => {
         if (email && !validator.isEmail(email)) {
             return res.status(400).json({ message: "Not a valid Email!" });
         }
- 
+
         let authAccount = await Auth.findOne({ phoneNumber });
         let targetEmail = "";
 
-        if (authAccount) { 
+        if (authAccount) {
             if (!authAccount.email) {
                 return res.status(400).json({ message: "Account error: No email registered. Please register." });
             }
             targetEmail = authAccount.email;
-        } else { 
+        } else {
             if (!email) {
-                return res.status(202).json({ 
-                    isNewUser: true, 
+                return res.status(202).json({
+                    isNewUser: true,
                     requireEmail: true,
-                    message: "New patient detected. Please provide an email address." 
+                    message: "New patient detected. Please provide an email address."
                 });
             }
-            targetEmail = email;  
-            authAccount = new Auth({ 
-                phoneNumber: phoneNumber, 
-                email: email 
+            targetEmail = email;
+            authAccount = new Auth({
+                phoneNumber: phoneNumber,
+                email: email
             });
         }
- 
+
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         authAccount.otp = otp;
         authAccount.otpExpires = Date.now() + 10 * 60 * 1000;
@@ -71,7 +130,7 @@ exports.sendOTP = async (req, res) => {
 
         const mailOptions = {
             from: `"MediKiosk Check-In" <${process.env.EMAIL_USER}>`,
-            to: targetEmail, 
+            to: targetEmail,
             subject: 'Your MediKiosk Login OTP',
             html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; color: #172554;">
@@ -85,12 +144,12 @@ exports.sendOTP = async (req, res) => {
 
         await transport.sendMail(mailOptions);
         console.log(`OTP EMAILED to ${targetEmail}`);
- 
+
         const userProfile = await User.findOne({ phoneNumber });
 
         return res.status(200).json({
             success: true,
-            isNewUser: !userProfile || !userProfile.name,   
+            isNewUser: !userProfile || !userProfile.name,
             message: "OTP sent successfully"
         });
 
@@ -99,7 +158,7 @@ exports.sendOTP = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
- 
+
 exports.verifyOTP = async (req, res) => {
     try {
         const { phoneNumber, otp } = req.body;
@@ -107,7 +166,7 @@ exports.verifyOTP = async (req, res) => {
         if (!phoneNumber || !otp) {
             return res.status(400).json({ message: "Phone number and OTP are required" });
         }
- 
+
         const authAccount = await Auth.findOne({ phoneNumber });
         if (!authAccount) {
             return res.status(404).json({ message: "Authentication record not found" });
@@ -116,22 +175,22 @@ exports.verifyOTP = async (req, res) => {
         if (!authAccount.otp || authAccount.otp !== otp || authAccount.otpExpires < Date.now()) {
             return res.status(401).json({ message: "Invalid or expired OTP" });
         }
- 
+
         authAccount.otp = null;
         authAccount.otpExpires = null;
-        await authAccount.save(); 
- 
+        await authAccount.save();
+
         let foundUser = await User.findOne({ phoneNumber });
         let isNewUser = false;
 
-        if (!foundUser) { 
+        if (!foundUser) {
             foundUser = new User({ phoneNumber });
             await foundUser.save();
             isNewUser = true;
         } else {
             isNewUser = !foundUser.name || !foundUser.age;
         }
-         
+
         generateToken(res, foundUser._id);
 
         return res.status(200).json({

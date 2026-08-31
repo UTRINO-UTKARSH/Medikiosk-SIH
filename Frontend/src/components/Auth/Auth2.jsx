@@ -54,7 +54,7 @@ const Auth2 = ({ onVerified }) => {
         }
     }
  
-    const handleVerifyOTP = async (otpCode) => { 
+   const handleVerifyOTP = async (otpCode) => { 
         try {
          const response = await fetch("http://localhost:3001/api/users/verify-otp", {
                 method: "POST",
@@ -65,12 +65,19 @@ const Auth2 = ({ onVerified }) => {
             const data = await response.json()
             if(!response.ok){
                  throw new Error(data.message || 'Wrong OTP');
-                
             }
 
             setOtpSent(false);
             toast.success("Verification successful!");
-            onVerified?.(data);
+            
+            // --- THE FIX IS HERE ---
+            // We combine the backend data with the 'needsEmail' state 
+            // which tells Verification.jsx exactly which route to take.
+            onVerified?.({ 
+                ...data, 
+                isNewUser: needsEmail 
+            });
+
         } catch (err) {
             toast.error(err.message || "Try again")
         } 

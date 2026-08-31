@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import React from "react";
 import Navbar from "./components/common/Navbar";
 import Home from "./Pages/Home";
@@ -6,9 +6,11 @@ import Verification from './Pages/Verification';
 import Dashboard from './Pages/Dashboard';
 import Consent from './components/Child Pages/Consent';
 import From from './components/common/From';
+import Login from './components/Auth/Login';
 import { useToast } from './components/common/Toast';
 import HospitalQRGenerator from './components/hospital/HospitalQRGEN';
-import AI from './Pages/AI'
+import AI from './Pages/AI';
+import UploadDocuments from './Pages/UploadDocuments';
 const publicRoutes = ['/', '/auth', '/login'];
 
 const ProtectedRoute = ({ children }) => {
@@ -52,11 +54,22 @@ const ProtectedRoute = ({ children }) => {
     }
   }, [isChecking, isAuthenticated, navigate, toast]);
 
-  if (isChecking || !isAuthenticated) return null;
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
   return children;
 };
 
-const App = () => { 
+const AppContent = () => { 
   const { pathname } = useLocation();
   const showNavbar = !publicRoutes.includes(pathname.toLowerCase());
   
@@ -66,15 +79,33 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Verification />} />
-        <Route path="/ai" element={<AI />} />
-        <Route path="/qr" element={<HospitalQRGenerator/>}/>
+        
+        <Route path="/login" element={<Login />} />
+
+       
         <Route path="/profile" element={<ProtectedRoute><From /></ProtectedRoute>} />
+
+        {/* Protected Routes - Common for Both Flows */}
         <Route path="/consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
-        <Route path="/Consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+        {/* Protected Routes - Other Features */}
+        <Route path="/upload" element={<ProtectedRoute><UploadDocuments /></ProtectedRoute>} />
+        <Route path="/ai" element={<ProtectedRoute><AI /></ProtectedRoute>} />
+        <Route path="/qr" element={<ProtectedRoute><HospitalQRGenerator /></ProtectedRoute>} />
+
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
+  );
+};
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 };
 

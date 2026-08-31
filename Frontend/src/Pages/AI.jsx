@@ -109,11 +109,7 @@ const AI = () => {
       }
 
       const parsed = JSON.parse(data.response);
-
-      // 2. Add AI chat response to UI
       setMessages((prev) => [...prev, { role: "ai", text: parsed.chatReply || "I understand. Please tell me more." }]);
-      
-      // 3. Silently save the extracted medical data in the background
       setParsedData(parsed);
 
     } catch (error) {

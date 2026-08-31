@@ -18,5 +18,9 @@ const userSchema = new mongoose.Schema({
         unique: true,
         ref: 'Auth'  
     },
+    password:{
+        type:String,
+        required:false
+    }
 },{timestamps:true})
 module.exports = mongoose.model("User",userSchema)
