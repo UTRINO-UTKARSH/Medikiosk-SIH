@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import React from "react";
 import Navbar from "./components/common/Navbar";
 import Home from "./Pages/Home";
@@ -56,7 +56,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-const AppRoutes = () => { 
+const App = () => { 
   const { pathname } = useLocation();
   const showNavbar = !publicRoutes.includes(pathname.toLowerCase());
   
@@ -78,4 +78,4 @@ const AppRoutes = () => {
   );
 };
 
-export default ReviewDoc;
+export default App;
