@@ -23,7 +23,7 @@ const Auth = ({ setIsAuth,isAuth }) => {
       const tokenid = data["Token Id"];
       const entered_name = data["Full Name"];
       const entered_dob = data["Date of birth"];
-      const res = await fetch('http://localhost:3001/api/users/login', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-type": "application/json" },

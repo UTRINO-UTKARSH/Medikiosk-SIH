@@ -24,7 +24,7 @@ const Auth2 = ({ onVerified }) => {
             const payload = { phoneNumber };
             if (needsEmail) payload.email = email;
 
-            const response = await fetch("http://localhost:3001/api/users/send-otp", {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/send-otp`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-type": "application/json" },
@@ -58,7 +58,7 @@ const Auth2 = ({ onVerified }) => {
 
     const handleVerifyOTP = async (otpCode) => {
         try {
-            const response = await fetch("http://localhost:3001/api/users/verify-otp", {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/verify-otp`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-type": "application/json" },

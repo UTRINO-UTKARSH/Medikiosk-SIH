@@ -28,7 +28,7 @@ const User_nav = () => {
 
     const fetchHospital = async () => {
       try {
-        const res = await fetch("http://localhost:3001/api/users/hospital", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/hospital`, {
           method: "GET",
           credentials: "include",
         });

@@ -42,7 +42,7 @@ const HospitalQR = ({ isOpen, onClose }) => {
             
             // Save hospital ID to database
             try {
-                const response = await fetch('http://localhost:3001/api/users/hospital', {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/hospital`, {
                     method: 'PUT',
                     credentials: 'include',
                     headers: {

@@ -22,7 +22,7 @@ export const useHospitalScanner = (onTokenSuccess) => {
     const fetchHospitalDetails = async (hospitalId) => {
         setIsLoading(true);
         try {
-            const response = await fetch(`http://localhost:3001/api/users/${hospitalId}`,{
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${hospitalId}`,{
                 method:"GET"
             });
             const data = await response.json();
