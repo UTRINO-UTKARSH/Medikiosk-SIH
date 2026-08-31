@@ -21,7 +21,7 @@ const Login = () => {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const response = await fetch('http://localhost:3001/api/users/check-auth', {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/check-auth`, {
                     credentials: 'include'
                 });
                 const data = await response.json();

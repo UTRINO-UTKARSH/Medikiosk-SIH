@@ -96,7 +96,7 @@ const AI = () => {
       const conversationHistory = messages.map(m => `${m.role === 'ai' ? 'AI' : 'Patient'}: ${m.text}`).join('\n');
       const fullPrompt = `${conversationHistory}\nPatient: ${textToSend}`;
 
-      const res = await fetch("http://localhost:3001/api/chat", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ prompt: fullPrompt }) // Sends history + new input
