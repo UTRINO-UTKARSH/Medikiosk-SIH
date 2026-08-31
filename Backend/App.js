@@ -8,7 +8,7 @@ const port = process.env.PORT || 3001;
 const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:3000",
-    process.env.FRONT_URL
+    process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
@@ -20,8 +20,12 @@ app.use(cors({
         }
     },
     credentials: true,
-    methods:['GET','PUT','POST']
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204
 }));
+
+app.options("*", cors());
 app.use(express.json())
 app.use(cookieParser())
 const userRoutes = require('./routes/routes.js');
