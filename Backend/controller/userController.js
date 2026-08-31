@@ -147,29 +147,29 @@ exports.verifyOTP = async (req, res) => {
     }
 };
 
-// exports.generateQR = async (req, res) => {
-//     try {
-//         const { accessCode, name, dob } = req.body;
-//         if (!accessCode) {
-//             return res.status(400).json({ message: "Access code required" })
-//         }
-//         const patientData = {
-//             "Token Id": accessCode,
-//             "Full Name": name || "",
-//             "Date of birth": dob || ""
-//         };
-//         const datastring = JSON.stringify(patientData)
-//         const qrcode = await QRCode.toDataURL(datastring);
-//         return res.status(200).json({
-//             success: true,
-//             message: "QR Code generated successfully",
-//             qrImage: qrCodeImageBase64
-//         });
-//     } catch (err) {
-//         console.error("QR Generation Error:", err);
-//         return res.status(500).json({
-//             success: false,
-//             message: "Failed to generate QR code"
-//         });
-//     }
-// }
+exports.generateQR = async (req, res) => {
+    try {
+        const { accessCode, name, dob } = req.body;
+        if (!accessCode) {
+            return res.status(400).json({ message: "Access code required" })
+        }
+        const patientData = {
+            "Token Id": accessCode,
+            "Full Name": name || "",
+            "Date of birth": dob || ""
+        };
+        const datastring = JSON.stringify(patientData)
+        const qrcode = await QRCode.toDataURL(datastring);
+        return res.status(200).json({
+            success: true,
+            message: "QR Code generated successfully",
+            qrImage: qrCodeImageBase64
+        });
+    } catch (err) {
+        console.error("QR Generation Error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to generate QR code"
+        });
+    }
+}

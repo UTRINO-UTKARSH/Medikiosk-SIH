@@ -7,7 +7,8 @@ import Dashboard from './Pages/Dashboard';
 import Consent from './components/Child Pages/Consent';
 import From from './components/common/From';
 import { useToast } from './components/common/Toast';
-
+import HospitalQRGenerator from './components/hospital/HospitalQRGEN';
+import AI from './Pages/AI'
 const publicRoutes = ['/', '/auth', '/login'];
 
 const ProtectedRoute = ({ children }) => {
@@ -55,7 +56,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-const AppRoutes = () => {
+const AppRoutes = () => { 
   const { pathname } = useLocation();
   const showNavbar = !publicRoutes.includes(pathname.toLowerCase());
   
@@ -65,9 +66,11 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Verification />} />
-        <Route path="/login" element={<Verification />} />
+        <Route path="/ai" element={<AI />} />
+        <Route path="/qr" element={<HospitalQRGenerator/>}/>
         <Route path="/profile" element={<ProtectedRoute><From /></ProtectedRoute>} />
         <Route path="/consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
+        <Route path="/Consent" element={<ProtectedRoute><Consent /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

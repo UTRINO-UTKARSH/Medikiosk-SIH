@@ -1,9 +1,12 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import { QrCode, Bot } from 'lucide-react';
-
+import HospitalQR from '../components/hospital/HospitaQR';
+import { useState } from 'react';
 const Dashboard = () => {
+    const [isScanning,setisScanning] = useState(false)
   return (
-    <div className="w-full min-h-screen flex flex-col items-center px-4 py-12 md:py-20 bg-white">
+    <div className="w-full min-h-screen flex flex-col items-center px-4 py-12 md:py-30 bg-white">
       
       {/* Header Section */}
       <div className="flex flex-col items-center text-center mb-10 md:mb-16">
@@ -19,7 +22,9 @@ const Dashboard = () => {
       <div className="flex flex-col md:flex-row w-full max-w-5xl justify-center gap-6 md:gap-10 px-4">
         
         {/* Option 1: Scan Hospital QR */}
-        <button className="flex-1 flex flex-col items-center text-center bg-gray-50 border-2 border-gray-200 rounded-3xl p-8 md:p-12 hover:bg-white hover:border-blue-950 hover:shadow-xl transition-all duration-300 group cursor-pointer">
+        <button onClick={() => {
+            setisScanning(true)
+        }} className="flex-1 flex flex-col items-center text-center bg-gray-50 border-2 border-gray-200 rounded-3xl p-8 md:p-12 hover:bg-white hover:border-blue-950 hover:shadow-xl transition-all duration-300 group cursor-pointer">
           <div className="h-20 w-20 rounded-full bg-gray-200 group-hover:bg-blue-100 transition-colors flex items-center justify-center mb-6">
             <QrCode className="h-10 w-10 text-blue-950" />
           </div>
@@ -50,6 +55,10 @@ const Dashboard = () => {
         </button>
 
       </div>
+      <HospitalQR
+                isOpen={isScanning} 
+                onClose={() => setisScanning(false)} 
+            />
     </div>
   );
 };
