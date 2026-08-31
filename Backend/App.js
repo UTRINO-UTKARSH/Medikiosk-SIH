@@ -24,8 +24,6 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"],
     optionsSuccessStatus: 204
 }));
-
-app.options("*", cors());
 app.use(express.json())
 app.use(cookieParser())
 const userRoutes = require('./routes/routes.js');
