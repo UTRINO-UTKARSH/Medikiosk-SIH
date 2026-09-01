@@ -7,6 +7,7 @@ import { useHospital } from '../context/HospitalContext'; // 1. Import your new 
 import { useTranslation } from 'react-i18next';
 
 const HospitalQR = ({ isOpen, onClose }) => {
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { setHospitalName, setHospitalId } = useHospital(); // 2. Access the memory vault
@@ -42,7 +43,7 @@ const HospitalQR = ({ isOpen, onClose }) => {
             
             // Save hospital ID to database
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/hospital`, {
+                const response = await fetch(`${API_URL}/api/users/hospital`, {
                     method: 'PUT',
                     credentials: 'include',
                     headers: {

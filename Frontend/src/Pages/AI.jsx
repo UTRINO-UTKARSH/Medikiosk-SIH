@@ -66,9 +66,9 @@ const AI = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [parsedData, setParsedData] = useState(null);
-  
-  const chatEndRef = useRef(null);
 
+  const chatEndRef = useRef(null);
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
   const [messages, setMessages] = useState([
     { role: "ai", text: t('aiChat.greeting') }
   ]);
@@ -85,7 +85,7 @@ const AI = () => {
 
   const handleSubmission = async (textToSend) => {
     if (!textToSend.trim()) return;
-    
+
     // 1. Add user message to UI
     setMessages((prev) => [...prev, { role: "user", text: textToSend }]);
     setPatientInput("");
@@ -96,7 +96,7 @@ const AI = () => {
       const conversationHistory = messages.map(m => `${m.role === 'ai' ? 'AI' : 'Patient'}: ${m.text}`).join('\n');
       const fullPrompt = `${conversationHistory}\nPatient: ${textToSend}`;
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chat`, {
+      const res = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ prompt: fullPrompt }) // Sends history + new input
@@ -127,17 +127,17 @@ const AI = () => {
   const { isRecording, isTranscribing, startRecording, stopRecording } = useAudioRecorder((transcribedText) => {
     handleSubmission(transcribedText);
   });
-   const handleMicTap = () => {
+  const handleMicTap = () => {
     if (isRecording) stopRecording();
     else startRecording();
   };
 
   return (
     <div className="bg-gray-100 flex min-h-screen items-center justify-center  p-2 md:p-10">
-      
+
       {/* Main Chat Container */}
       <div className="w-full max-w-3xl bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col h-[85vh]">
-        
+
         {/* Header */}
         <div className="bg-blue-950 p-5 text-white flex justify-between items-center z-10 shadow-md">
           <div className="flex items-center gap-3">
@@ -149,8 +149,8 @@ const AI = () => {
               <p className="text-blue-200 text-xs md:text-sm">Medical Triage Assistant</p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setShowSummary(true)}
             className="bg-orange-500 hover:bg-orange-600 transition px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"
           >
@@ -171,7 +171,7 @@ const AI = () => {
               </div>
             </div>
           ))}
-          
+
           {/* Loading Indicator */}
           {isLoading && (
             <div className="flex gap-3 max-w-[85%]">
@@ -190,18 +190,17 @@ const AI = () => {
 
         {/* Unified Input Area */}
         <div className="p-4 bg-white border-t border-gray-100 flex items-end gap-2">
-          
+
           {/* Mic Button */}
-          <button 
+          <button
             type="button"
             onClick={handleMicTap}
-            className={`p-4 rounded-xl shrink-0 transition-all flex flex-col items-center justify-center h-13 w-13 ${
-              isRecording 
-                ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" 
-                : isTranscribing 
+            className={`p-4 rounded-xl shrink-0 transition-all flex flex-col items-center justify-center h-13 w-13 ${isRecording
+                ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                : isTranscribing
                   ? "bg-orange-400 text-white cursor-wait"
                   : "bg-blue-100 hover:bg-blue-200 text-blue-950"
-            }`}
+              }`}
           >
             {isRecording ? <Square size={20} fill="currentColor" /> : <Mic size={24} />}
           </button>
@@ -216,8 +215,8 @@ const AI = () => {
               disabled={isRecording || isTranscribing || isLoading}
               className="flex-1 bg-gray-100 border border-transparent focus:border-blue-950 focus:bg-white rounded-xl px-4 h-13 outline-none transition disabled:opacity-50"
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={!patientInput.trim() || isLoading}
               className="bg-blue-950 text-white h-13 px-6 rounded-xl hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center shrink-0"
             >
@@ -231,13 +230,13 @@ const AI = () => {
       {showSummary && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSummary(false)} />
-          
+
           <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="bg-blue-950 p-4 flex justify-between items-center text-white">
-              <h3 className="font-bold text-lg flex items-center gap-2"><FileText size={20}/> {t('aiChat.physicianSummary')}</h3>
-              <button onClick={() => setShowSummary(false)} className="hover:text-gray-300"><X size={24}/></button>
+              <h3 className="font-bold text-lg flex items-center gap-2"><FileText size={20} /> {t('aiChat.physicianSummary')}</h3>
+              <button onClick={() => setShowSummary(false)} className="hover:text-gray-300"><X size={24} /></button>
             </div>
-            
+
             <div className="p-6">
               {parsedData ? (
                 <div className="flex flex-col gap-4">
@@ -286,13 +285,13 @@ const AI = () => {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Bot size={48} className="mx-auto mb-3 opacity-20" />
-                  <p>{t('aiChat.noDataExtracted')}<br/>{t('aiChat.startChatting')}</p>
+                  <p>{t('aiChat.noDataExtracted')}<br />{t('aiChat.startChatting')}</p>
                 </div>
               )}
             </div>
-            
+
             <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-              <button 
+              <button
                 onClick={() => setShowSummary(false)}
                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition"
               >

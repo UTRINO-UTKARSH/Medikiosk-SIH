@@ -9,7 +9,7 @@ const Login = () => {
     const toast = useToast();
     const [userInfo, setUserInfo] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
     // Password states
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +21,7 @@ const Login = () => {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/check-auth`, {
+                const response = await fetch(`${API_URL}/api/users/check-auth`, {
                     credentials: 'include'
                 });
                 const data = await response.json();
@@ -42,7 +42,7 @@ const Login = () => {
         };
 
         fetchUserInfo();
-    }, [navigate, toast]);
+    }, [navigate, toast,API_URL]);
 
     const handleContinue = async (e) => {
         e?.preventDefault();
@@ -55,7 +55,7 @@ const Login = () => {
 
         try {
             // Send the password to your backend for verification
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/login`, {
+            const response = await fetch(`${API_URL}/api/users/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

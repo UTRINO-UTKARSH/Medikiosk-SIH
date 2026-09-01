@@ -8,6 +8,7 @@ import {Scanner} from "@yudiel/react-qr-scanner"
 
 const Auth = ({ setIsAuth,isAuth }) => {
   const { t } = useTranslation();
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
   const [ModelOpen, setModelOpen] = useState(false);
   const toast = useToast();
   const [isScanning, setisScanning] = useState(false)
@@ -23,7 +24,7 @@ const Auth = ({ setIsAuth,isAuth }) => {
       const tokenid = data["Token Id"];
       const entered_name = data["Full Name"];
       const entered_dob = data["Date of birth"];
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/login`, {
+      const res = await fetch(`${API_URL}/api/users/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-type": "application/json" },

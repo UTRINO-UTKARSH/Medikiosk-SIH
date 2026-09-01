@@ -18,7 +18,7 @@ import TimeTable from './components/User-dash/TimeTable';
 import Medicalhistory from './components/User-dash/Medicalhistory';
 
 const publicRoutes = ['/', '/auth', '/login','/user-dash'];
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
   const toast = useToast();
@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }) => {
 
     const checkAuth = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/check-auth`, {
+        const response = await fetch(`${API_URL}/api/users/check-auth`, {
           credentials: 'include'
         });
         const data = await response.json();

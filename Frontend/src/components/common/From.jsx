@@ -10,7 +10,7 @@ const From = () => {
     const [gender, setGender] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
     // States for password visibility toggles
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -32,7 +32,7 @@ const From = () => {
         }
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile`, {
+            const response = await fetch(`${API_URL}/api/users/profile`, {
                 method: "PUT",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },

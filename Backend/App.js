@@ -4,10 +4,10 @@ const cookieParser = require("cookie-parser")
 require('dotenv').config()
 const connectDb = require("./lib/db.js")
 const app = express()
-const port = process.env.PORT || 3001;
+const port =  3001;
 const allowedOrigins = [
     "http://localhost:5173",
-    "http://localhost:3000",
+    "http://localhost:3001",
     process.env.FRONTEND_URL
 ].filter(Boolean);
 

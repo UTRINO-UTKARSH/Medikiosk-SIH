@@ -87,7 +87,8 @@
     "medicalHistory": "Medical History",
     "language": "Language",
     "help": "Help",
-    "profile": "Profile"
+    "profile": "Profile",
+    "labRecords":"Lab Records"
   },
   "gate": {
     "welcome": "Welcome to Parchi",

@@ -18,7 +18,7 @@ const User_nav = () => {
     { label: t('userNav.timeTable'), path: "/time-table" },
     { label: t('userNav.medicalHistory'), path: "/medical-history" },
   ];
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
   useEffect(() => {
     // Context already has a real name (set right after the QR scan) —
     // nothing to fetch, avoids an unnecessary request + flicker.
@@ -28,7 +28,7 @@ const User_nav = () => {
 
     const fetchHospital = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/hospital`, {
+        const res = await fetch(`${API_URL}/api/users/hospital`, {
           method: "GET",
           credentials: "include",
         });
@@ -56,7 +56,7 @@ const User_nav = () => {
     return () => {
       isMounted = false;
     };
-  }, [hospitalName, setHospitalName]);
+  }, [hospitalName, setHospitalName,API_URL]);
 
   return (
     <aside className="w-64 shrink-0 bg-[#0F1B2D] text-white flex flex-col justify-between h-full">
