@@ -3,8 +3,9 @@ const Auth = require('../models/authModel.js'); // Brought in the new Auth model
 const { generateToken } = require('../lib/utils.js');
 const jwt = require('jsonwebtoken');
 const validator = require("validator");
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
+// const { TransactionalEmailsApi, SendSmtpEmail } = require('@getbrevo/brevo');
 exports.checkAuth = async (req, res) => {
     const token = req.cookies.jwt;
     if (!token) return res.status(401).json({ authenticated: false });
@@ -118,42 +119,47 @@ exports.sendOTP = async (req, res) => {
         authAccount.otpExpires = Date.now() + 10 * 60 * 1000;
         await authAccount.save();
 
-        // 1. Correct Nodemailer configuration
-        const transport = nodemailer.createTransport({
-            host: "smtp.gmail.com", // Changed from 'service' to 'host'
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS // Must be a 16-character Google App Password
-            },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 10000
-        });
-
-        const mailOptions = {
-            from: `"Parchi Check-In" <${process.env.EMAIL_USER}>`,
-            to: targetEmail,
-            subject: 'Your Parchi Login OTP',
-            html: `
-                <div style="font-family: Arial, sans-serif; text-align: center; color: #172554;">
-                    <h2>Parchi Authentication</h2>
-                    <p>Your one-time password for login is:</p>
-                    <h1 style="letter-spacing: 5px; color: #1e3a8a;">${otp}</h1>
-                    <p>This code is valid for 10 minutes.</p>
-                </div>
-            `
-        };
-
-        // 2. Wrap sendMail to clearly identify SMTP failures
+        // Brevo HTTP API via native fetch (bypasses SDK constructor bugs & Render SMTP blocks)
         try {
-            await transport.sendMail(mailOptions);
-            console.log(`OTP EMAILED to ${targetEmail}`);
+            const brevoResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+                method: "POST",
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                    "api-key": process.env.BREVO_API_KEY
+                },
+                body: JSON.stringify({
+                    sender: {
+                        name: "Parchi Verification",
+                        email: process.env.EMAIL_USER
+                    },
+                    to: [{ email: targetEmail }],
+                    subject: "Your Parchi Login OTP",
+                    htmlContent: `
+                        <div style="font-family: Arial, sans-serif; text-align: center; color: #172554;">
+                            <h2>Parchi Authentication</h2>
+                            <p>Your one-time password for login is:</p>
+                            <h1 style="letter-spacing: 5px; color: #1e3a8a;">${otp}</h1>
+                            <p>This code is valid for 10 minutes.</p>
+                        </div>
+                    `
+                })
+            });
+
+            const brevoData = await brevoResponse.json();
+
+            if (!brevoResponse.ok) {
+                console.error("Brevo API Error:", brevoData);
+                return res.status(500).json({
+                    message: brevoData.message || "Failed to dispatch email via Brevo."
+                });
+            }
+
+            console.log(`OTP sent via Brevo to ${targetEmail}`);
         } catch (mailError) {
-            console.error("Nodemailer Transport Error:", mailError);
+            console.error("Brevo Dispatch Error:", mailError);
             return res.status(500).json({ 
-                message: "Email service failed. Check EMAIL_USER and EMAIL_PASS configuration." 
+                message: "Email service failed. Check BREVO_API_KEY and EMAIL_USER configuration." 
             });
         }
 
@@ -171,7 +177,6 @@ exports.sendOTP = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
-
 exports.verifyOTP = async (req, res) => {
     try {
         const { phoneNumber, otp } = req.body;
