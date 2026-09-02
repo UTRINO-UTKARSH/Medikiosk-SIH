@@ -8,7 +8,7 @@ export const useHospitalScanner = (onTokenSuccess) => {
     const [isScanning, setIsScanning] = useState(true);
     const [hospitalDetails, setHospitalDetails] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     // 1. Handle Camera Scan
     const handleScan = (result) => {
         if (result && result.length > 0) {

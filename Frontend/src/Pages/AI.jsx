@@ -4,7 +4,7 @@ import { Mic, Send, Bot, User, FileText, X, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 // --- Custom Hook for Audio Recording (UNCHANGED) ---
-function useAudioRecorder(onTranscriptionComplete) {
+function useAudioRecorder(onTranscriptionComplete, apiUrl) { // <-- Added apiUrl parameter
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const mediaRecorderRef = useRef(null);
@@ -25,15 +25,16 @@ function useAudioRecorder(onTranscriptionComplete) {
         setIsTranscribing(true);
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const formData = new FormData();
-        formData.append("audio", audioBlob, "patient_audio.webm");
+        formData.append("audioFile", audioBlob, "patient_audio.webm"); // <-- Must match the multer upload.single('audioFile') in Express
 
         try {
-          const response = await fetch("http://localhost:8000/api/transcribe", {
+          // Send to the Express backend instead of Python
+          const response = await fetch(`${apiUrl}/transcribe`, {
             method: "POST",
             body: formData,
           });
           const data = await response.json();
-          if (data.text) onTranscriptionComplete(data.text);
+          if (data.transcription) onTranscriptionComplete(data.transcription); // <-- Make sure this matches the Express response key
         } catch (error) {
           console.error("Transcription error:", error);
         } finally {
@@ -48,7 +49,6 @@ function useAudioRecorder(onTranscriptionComplete) {
       console.error("Microphone access denied:", error);
     }
   };
-
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop();
@@ -68,7 +68,7 @@ const AI = () => {
   const [parsedData, setParsedData] = useState(null);
 
   const chatEndRef = useRef(null);
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const [messages, setMessages] = useState([
     { role: "ai", text: t('aiChat.greeting') }
   ]);
@@ -126,7 +126,8 @@ const AI = () => {
   };
   const { isRecording, isTranscribing, startRecording, stopRecording } = useAudioRecorder((transcribedText) => {
     handleSubmission(transcribedText);
-  });
+  }, API_URL);
+
   const handleMicTap = () => {
     if (isRecording) stopRecording();
     else startRecording();
@@ -196,10 +197,10 @@ const AI = () => {
             type="button"
             onClick={handleMicTap}
             className={`p-4 rounded-xl shrink-0 transition-all flex flex-col items-center justify-center h-13 w-13 ${isRecording
-                ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-                : isTranscribing
-                  ? "bg-orange-400 text-white cursor-wait"
-                  : "bg-blue-100 hover:bg-blue-200 text-blue-950"
+              ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+              : isTranscribing
+                ? "bg-orange-400 text-white cursor-wait"
+                : "bg-blue-100 hover:bg-blue-200 text-blue-950"
               }`}
           >
             {isRecording ? <Square size={20} fill="currentColor" /> : <Mic size={24} />}

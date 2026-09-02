@@ -18,7 +18,7 @@ const User_nav = () => {
     { label: t('userNav.timeTable'), path: "/time-table" },
     { label: t('userNav.medicalHistory'), path: "/medical-history" },
   ];
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   useEffect(() => {
     // Context already has a real name (set right after the QR scan) —
     // nothing to fetch, avoids an unnecessary request + flicker.

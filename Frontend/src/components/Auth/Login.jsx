@@ -9,7 +9,7 @@ const Login = () => {
     const toast = useToast();
     const [userInfo, setUserInfo] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     // Password states
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);

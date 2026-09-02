@@ -4,13 +4,16 @@ const cookieParser = require("cookie-parser")
 require('dotenv').config()
 const connectDb = require("./lib/db.js")
 const app = express()
-const port =  3001;
+const port = process.env.PORT || 3001;
 const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:3001",
     process.env.FRONTEND_URL
 ].filter(Boolean);
-
+const multer = require('multer');
+const router = express.Router();
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin)) {
@@ -98,7 +101,49 @@ app.post('/api/chat', async (req, res) => {
     }
 })
 //
+app.post('/transcribe', upload.single('audioFile'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "No audio file provided" });
+        }
 
+        // Use standard Web API FormData (built into Node 18+)
+        const formData = new FormData();
+
+        // Convert the Multer buffer directly into a Blob
+        const audioBlob = new Blob([req.file.buffer], { type: req.file.mimetype });
+
+        // Append the file. We MUST pass a filename (e.g., 'audio.webm') 
+        // so Groq knows the file type format.
+        formData.append('file', audioBlob, 'audio.webm'); 
+        formData.append('model', 'whisper-large-v3');
+
+        // Make the request to the Cloud API
+        const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+                // Note: Do NOT manually set Content-Type here. 
+                // Native fetch automatically handles the complex boundaries for FormData!
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        // No need for fs.unlinkSync because the file was never saved to the hard drive!
+
+        if (!response.ok) {
+            throw new Error(data.error?.message || "Transcription failed");
+        }
+
+        res.json({ transcription: data.text });
+
+    } catch (error) {
+        console.error("Transcription Error:", error);
+        res.status(500).json({ error: "Audio processing failed" });
+    }
+});
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
     connectDb()

@@ -10,7 +10,7 @@ const From = () => {
     const [gender, setGender] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     // States for password visibility toggles
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);

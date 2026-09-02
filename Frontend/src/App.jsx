@@ -18,7 +18,7 @@ import TimeTable from './components/User-dash/TimeTable';
 import Medicalhistory from './components/User-dash/Medicalhistory';
 
 const publicRoutes = ['/', '/auth', '/login','/user-dash'];
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
   const toast = useToast();
