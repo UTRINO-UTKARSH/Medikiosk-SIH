@@ -1,11 +1,10 @@
 // controllers/hospitalController.js
 const Hospital = require('../models/hospitalModel');
 const QRCode = require('qrcode');
-const connectDb = require('../lib/db.js'); // <-- Added missing import
+ // <-- Added missing import
 
 exports.addHospital = async (req, res) => {
     try {
-        await connectDb(); // Good practice to ensure DB is connected
         const newHospital = new Hospital(req.body);
         await newHospital.save();
         
@@ -46,7 +45,6 @@ exports.generateQR = async (req, res) => {
 
 exports.getDefaultHospital = async (req, res) => {
     try {
-        await connectDb();
         
         // Find the first available hospital in your Atlas collection
         const hospital = await Hospital.findOne({});
@@ -68,7 +66,6 @@ exports.getDefaultHospital = async (req, res) => {
 // Kept the correct version of getHospitalDetails
 exports.getHospitalDetails = async (req, res) => {
     try {
-        await connectDb();
         const { id } = req.params;
 
         // Query across all ID field variations present in your database
@@ -97,7 +94,6 @@ exports.getHospitalDetails = async (req, res) => {
 // Added this to prevent crashes since it is imported in your routes.js
 exports.getAllHospitals = async (req, res) => {
     try {
-        await connectDb();
         const hospitals = await Hospital.find({});
         return res.status(200).json({ success: true, count: hospitals.length, hospitals });
     } catch (err) {

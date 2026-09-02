@@ -4,7 +4,6 @@ const { generateToken } = require('../lib/utils.js');
 const jwt = require('jsonwebtoken');
 const validator = require("validator");
 const nodemailer = require('nodemailer');
-const connectDb = require('../lib/db.js');
 const bcrypt = require('bcryptjs');
 exports.checkAuth = async (req, res) => {
     const token = req.cookies.jwt;
@@ -13,13 +12,13 @@ exports.checkAuth = async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.userId).select('phoneNumber name age');
-        
+
         if (!user) return res.status(401).json({ authenticated: false });
 
-        res.status(200).json({ 
-            authenticated: true, 
+        res.status(200).json({
+            authenticated: true,
             userId: user._id,
-            phoneNumber: user.phoneNumber 
+            phoneNumber: user.phoneNumber
         });
     } catch {
         res.status(401).json({ authenticated: false });
@@ -79,7 +78,7 @@ exports.login = async (req, res) => {
 };
 
 exports.sendOTP = async (req, res) => {
-    await connectDb();
+    
     try {
         const { phoneNumber, email } = req.body;
 
@@ -121,11 +120,17 @@ exports.sendOTP = async (req, res) => {
         await authAccount.save();
 
         const transport = nodemailer.createTransport({
+            host:"smtp.gmail.com",
             service: "gmail",
+            port: 465,
+            secure: true,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
-            }
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000
         });
 
         const mailOptions = {
@@ -151,7 +156,7 @@ exports.sendOTP = async (req, res) => {
             success: true,
             isNewUser: !userProfile || !userProfile.name,
             message: "OTP sent successfully",
-            email:targetEmail
+            email: targetEmail
         });
 
     } catch (error) {
@@ -236,9 +241,8 @@ exports.generateQR = async (req, res) => {
 
 exports.getUserHospital = async (req, res) => {
     try {
-        await connectDb();
         const token = req.cookies.jwt;
-        
+
         if (!token) {
             return res.status(401).json({ message: "Not authenticated" });
         }
@@ -280,7 +284,6 @@ exports.getUserHospital = async (req, res) => {
 
 exports.updateUserHospital = async (req, res) => {
     try {
-        await connectDb();
         const token = req.cookies.jwt;
         const { hospitalId } = req.body;
 

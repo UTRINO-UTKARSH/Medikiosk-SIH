@@ -144,7 +144,18 @@ app.post('/transcribe', upload.single('audioFile'), async (req, res) => {
         res.status(500).json({ error: "Audio processing failed" });
     }
 });
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-    connectDb()
-})
+const startServer = async () => {
+    try {
+        await connectDb();
+        console.log("Connected to MongoDB");
+
+        app.listen(port, () => {
+            console.log(`Server running at http://localhost:${port}`);
+        });
+    } catch (err) {
+        console.error("Failed to connect to database:", err);
+        process.exit(1);
+    }
+};
+
+startServer();
