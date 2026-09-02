@@ -78,7 +78,6 @@ exports.login = async (req, res) => {
 };
 
 exports.sendOTP = async (req, res) => {
-    
     try {
         const { phoneNumber, email } = req.body;
 
@@ -119,14 +118,14 @@ exports.sendOTP = async (req, res) => {
         authAccount.otpExpires = Date.now() + 10 * 60 * 1000;
         await authAccount.save();
 
+        // 1. Correct Nodemailer configuration
         const transport = nodemailer.createTransport({
-            host:"smtp.gmail.com",
-            service: "gmail",
+            host: "smtp.gmail.com", // Changed from 'service' to 'host'
             port: 465,
             secure: true,
             auth: {
                 user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
+                pass: process.env.EMAIL_PASS // Must be a 16-character Google App Password
             },
             connectionTimeout: 10000,
             greetingTimeout: 10000,
@@ -147,8 +146,16 @@ exports.sendOTP = async (req, res) => {
             `
         };
 
-        await transport.sendMail(mailOptions);
-        console.log(`OTP EMAILED to ${targetEmail}`);
+        // 2. Wrap sendMail to clearly identify SMTP failures
+        try {
+            await transport.sendMail(mailOptions);
+            console.log(`OTP EMAILED to ${targetEmail}`);
+        } catch (mailError) {
+            console.error("Nodemailer Transport Error:", mailError);
+            return res.status(500).json({ 
+                message: "Email service failed. Check EMAIL_USER and EMAIL_PASS configuration." 
+            });
+        }
 
         const userProfile = await User.findOne({ phoneNumber });
 
@@ -163,7 +170,7 @@ exports.sendOTP = async (req, res) => {
         console.error("OTP Generation Error:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 
 exports.verifyOTP = async (req, res) => {
     try {
