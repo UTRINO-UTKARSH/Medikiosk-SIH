@@ -11,7 +11,12 @@ step2 to ai
 
 BACKEND AUTH(APPROACH 2)
 INSTEAD OF TOKEN NO. USE PHONE NUMBERS SINCE THEY AER UNIQUE AND CAN BE USE IN ALMOST EVERY LOCATION OR TYPE OF user
-FIX: CHANGE ACCESS CODE TO PHONE NUMBER THEN REMOVE TOKEN(qr CODE SCANNER).
 
-DEPLOYMENT ATTEMPT COUNTER= 11
+FIX: CHANGE ACCESS CODE TO PHONE NUMBER THEN REMOVE TOKEN(qr CODE SCANNER).
+FIX: Replaced Nodemailer with Brevo's HTTP API to bypass outbound SMTP port restrictions on Render and enable reliable OTP email delivery.
+
+
+
+
+DEPLOYMENT ATTEMPT COUNTER= 13
 if u fail into deployment at any place or any error is seen then increase the counter
