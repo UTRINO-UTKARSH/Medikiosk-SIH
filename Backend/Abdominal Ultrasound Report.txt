@@ -1,0 +1,22 @@
+=========================================================
+          CITY HOSPITAL RADIOLOGY DEPARTMENT
+=========================================================
+PATIENT NAME: Rajesh Kumar
+AGE/SEX: 34/M
+DATE OF EXAM: September 2, 2026
+REFERRING DR: Dr. S. Patel
+EXAM: USG Abdomen and Pelvis
+CLINICAL INDICATION: Epigastric pain, suspected gastritis.
+
+FINDINGS:
+LIVER: Normal in size. Mild increase in echogenicity consistent with Grade 1 Hepatic Steatosis (Fatty Liver). No focal lesions seen.
+GALLBLADDER: Well-distended. A single 4mm calculus (gallstone) is noted without acoustic shadowing. Wall thickness is normal (2mm). No pericholecystic fluid.
+PANCREAS: Normal in size, outline, and echotexture. No calcifications or ductal dilatation.
+SPLEEN: Normal in size (10.5 cm) and echotexture.
+KIDNEYS: Both kidneys are normal in size, shape, and position. Corticomedullary differentiation is maintained. No calculus or hydronephrosis.
+
+IMPRESSION: 
+1. Grade 1 Hepatic Steatosis (Fatty Liver).
+2. Small 4mm asymptomatic cholelithiasis (gallstone). 
+3. Otherwise unremarkable study.
+=========================================================

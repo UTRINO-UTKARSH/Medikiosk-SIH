@@ -1,0 +1,27 @@
+=========================================================
+              APEX DIAGNOSTIC LABORATORIES
+=========================================================
+PATIENT NAME: Rajesh Kumar           SAMPLE DATE: 02-SEP-2026
+PATIENT ID: 987654321                REPORT DATE: 03-SEP-2026
+
+TEST NAME                  RESULT     UNITS      REFERENCE RANGE   FLAG
+-------------------------------------------------------------------------
+COMPLETE BLOOD COUNT (CBC)
+Hemoglobin (Hb)            14.2       g/dL       13.0 - 17.0       Normal
+WBC Count                  11,200     cells/cumm 4,000 - 11,000    HIGH
+Platelet Count             250,000    cells/cumm 150k - 450k       Normal
+
+LIVER FUNCTION TEST (LFT)
+Total Bilirubin            1.1        mg/dL      0.1 - 1.2         Normal
+SGOT (AST)                 58         U/L        10 - 40           HIGH
+SGPT (ALT)                 65         U/L        7 - 56            HIGH
+Alkaline Phosphatase       110        U/L        44 - 147          Normal
+
+PANCREATIC MARKERS
+Serum Amylase              85         U/L        30 - 110          Normal
+Serum Lipase               42         U/L        10 - 73           Normal
+
+INTERPRETATION:
+Mild leukocytosis noted. Mild elevation in hepatic transaminases (AST/ALT). 
+Pancreatic enzymes are within normal limits.
+=========================================================

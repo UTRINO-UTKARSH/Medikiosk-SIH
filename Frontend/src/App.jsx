@@ -16,6 +16,7 @@ import LabReport from './components/User-dash/LabReport';
 import Download from './components/User-dash/Download';
 import TimeTable from './components/User-dash/TimeTable';
 import Medicalhistory from './components/User-dash/Medicalhistory';
+// import DoctorDashboard from './components/hospital/DoctorDashboard';
 
 const publicRoutes = ['/', '/auth', '/login','/user-dash'];
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -99,6 +100,7 @@ const AppContent = () => {
         <Route path="/download" element={<ProtectedRoute><Download /></ProtectedRoute>} />
         <Route path="/time-table" element={<ProtectedRoute><TimeTable /></ProtectedRoute>} />
         <Route path="/medical-history" element={<ProtectedRoute><Medicalhistory /></ProtectedRoute>} />
+        {/* <Route path="/doc" element={<ProtectedRoute><DoctorDashboard /></ProtectedRoute>} /> */}
 
         {/* Protected Routes - Other Features */}
         <Route path="/upload" element={<ProtectedRoute><UploadDocuments /></ProtectedRoute>} />

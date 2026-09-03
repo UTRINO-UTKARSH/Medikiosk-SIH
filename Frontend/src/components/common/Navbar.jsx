@@ -1,83 +1,91 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
-import { CircleQuestionMark, CircleUser, Globe } from "lucide-react";
+import { CircleHelp, CircleUser, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-const Navbar = ({ Logo, showLanguage, showHelp, showUser, onHelpClick,
-  onUserClick,
+const Navbar = ({ 
+  Logo, 
+  showLanguage, 
+  showHelp, 
+  showUser, 
+  onHelpClick, 
+  onUserClick 
 }) => {
-  const { i18n, t } = useTranslation()
+  const { i18n, t } = useTranslation();
+  
   const languages = [
-    { code: "en", label: "English" },
-    { code: "hi", label: "हिंदी" },
-    { code: "mr", label: "मराठी" }
+    { code: "en", label: "EN" },
+    { code: "hi", label: "हि" },
+    { code: "mr", label: "मरा" }
   ];
 
   const onLanguageClick = () => {
-    const currentLangCode = i18n.resolvedLanguage || i18n.language
-    const currentIndex = languages.findIndex(lang => lang.code == currentLangCode)
-    const nextIndex = (currentIndex + 1) % languages.length
+    const currentLangCode = i18n.resolvedLanguage || i18n.language;
+    const currentIndex = languages.findIndex(lang => lang.code === currentLangCode);
+    const nextIndex = (currentIndex + 1) % languages.length;
     i18n.changeLanguage(languages[nextIndex].code);
-  }
+  };
+
   const currentLangCode = i18n.resolvedLanguage || i18n.language;
-  const currentLangLabel = languages.find(lang => lang.code === currentLangCode)?.label || "English";
+  const currentLangLabel = languages.find(lang => lang.code === currentLangCode)?.label || "EN";
+
   return (
-    <div>
-      <nav className="fixed top-0 left-0 w-full h-16 md:h-20 shadow-sm z-50 bg-[#0F1B2D]">
-        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-10">
+    <header className="fixed top-0 left-0 w-full h-14 z-50 bg-[#131314]/90 backdrop-blur-md border-b border-[#2d2e30] px-4 md:px-6 flex items-center justify-between shadow-sm">
+      
+      {/* Left: Logo & App Name */}
+      <div className="flex items-center gap-2.5 cursor-pointer">
+        {Logo && (
+          <img
+            src={Logo}
+            className="w-7 h-7 object-contain shrink-0"
+            alt="Logo"
+          />
+        )}
+        <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
+          {t('common.appName') || "Parchi"}
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+        </span>
+      </div>
 
-          <div className="flex items-center gap-2 md:gap-4">
-            {Logo && (
-              <img
-                src={Logo}
-                className="block w-9 md:w-12 lg:w-14 h-9 md:h-12 lg:h-14 object-contain shrink-0"
-                alt="Logo"
-              />
-            )}
-            <span className="text-xl md:text-3xl lg:text-4xl font-greet font-bold text-white leading-none">
-              {t('common.appName')}
-            </span>
-          </div>
+      {/* Right: Actions (Compact & Sleek) */}
+      <div className="flex items-center gap-2 text-sm text-gray-300">
 
-          <div className="flex items-center gap-4 md:gap-8 lg:gap-10 text-sm md:text-base text-white">
+        {showLanguage && (
+          <button
+            onClick={onLanguageClick}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1e1f20] hover:bg-[#2d2e30] border border-[#2d2e30] text-gray-300 hover:text-white transition text-xs font-semibold shadow-sm"
+            title="Change Language"
+          >
+            <Globe className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <span>{currentLangLabel}</span>
+          </button>
+        )}
 
-            {showLanguage && (
-              <div
-                className="flex items-center gap-2 cursor-pointer"
-                onClick={onLanguageClick}
-              >
-                <Globe className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
-                <span className="hidden sm:block font-medium">{currentLangLabel}</span>
-              </div>
-            )}
+        {showHelp && (
+          <button
+            onClick={onHelpClick}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1e1f20] hover:bg-[#2d2e30] border border-[#2d2e30] text-gray-300 hover:text-white transition text-xs font-medium shadow-sm"
+          >
+            <CircleHelp className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+            <span className="hidden sm:inline">{t('navbar.help') || "Help"}</span>
+          </button>
+        )}
 
-            {showHelp && (
-              <div
-                className="flex items-center gap-2 cursor-pointer"
-                onClick={onHelpClick}
-              >
-                <CircleQuestionMark className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
-                <span className="hidden sm:block font-medium">{t('navbar.help')}</span>
-              </div>
-            )}
+        {showUser && (
+          <Link to='/user-dash'>
+            <button
+              onClick={onUserClick}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-950/40 hover:bg-blue-900/50 border border-blue-800/40 text-blue-200 hover:text-white transition text-xs font-medium shadow-sm"
+            >
+              <CircleUser className="w-4 h-4 text-blue-400 shrink-0" />
+              <span className="hidden sm:inline">{t('navbar.user') || "User"}</span>
+            </button>
+          </Link>
+        )}
 
-            {showUser && (
-              <Link to='/user-dash'>
-                <div
-                  className="flex items-center gap-2 cursor-pointer"
-                  onClick={onUserClick}
-                >
-                  <CircleUser className="w-6 h-6 md:w-7 md:h-7" />
-                  <span className="hidden sm:block font-medium">{t('navbar.user')}</span>
-                </div>
-              </Link>
-            )}
-
-          </div>
-        </div>
-      </nav>
-    </div>
+      </div>
+    </header>
   );
 };
 
