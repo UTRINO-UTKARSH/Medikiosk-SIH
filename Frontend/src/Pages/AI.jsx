@@ -299,6 +299,7 @@ const AI = () => {
     } finally {
       setIsLoading(false);
     }
+    inputRef.current?.focus()
   };
 
   const handleDocUpload = async (docType, file) => {
