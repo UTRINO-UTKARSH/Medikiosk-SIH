@@ -6,6 +6,8 @@ const connectDb = require("./lib/db.js");
 const app = express();
 const port = process.env.PORT || 3001;
 const pdfParse = require('pdf-parse');
+const Groq = require("groq-sdk");
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });    
 const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:3001",
@@ -202,17 +204,14 @@ function buildSummaryPdf(data, referenceId) {
     });
 }
 
-// ============================================================================
-// NEW: Sequential Fallback AI Caller
-// ============================================================================
 async function callGroqWithFallback(basePayload, modelsArray) {
     for (let i = 0; i < modelsArray.length; i++) {
         const currentModel = modelsArray[i];
         console.log(`[AI] Attempting with model (${i + 1}/${modelsArray.length}):${currentModel}`);
-        
+
         // Inject the current model into the payload
         const payload = { ...basePayload, model: currentModel };
-        
+
         try {
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
@@ -222,15 +221,15 @@ async function callGroqWithFallback(basePayload, modelsArray) {
                 },
                 body: JSON.stringify(payload)
             });
-            
+
             const data = await response.json();
-            
+
             // 1. Successful valid response
             if (response.ok && data.choices && data.choices[0]?.message?.content) {
                 console.log(`[AI] Success using model: ${currentModel}`);
                 return { response, data };
             }
-            
+
             // 2. Groq specific JSON validation failure (salvage the text!)
             if (!response.ok && data.error?.code === "json_validate_failed" && data.error?.failed_generation) {
                 console.log(`[AI] Salvaged JSON failure from: ${currentModel}`);
@@ -241,16 +240,16 @@ async function callGroqWithFallback(basePayload, modelsArray) {
                     }
                 };
             }
-            
+
             // 3. Any other API failure (e.g., rate limit, model offline)
             console.warn(`[AI] Model ${currentModel} failed:`, data.error?.message || "Unknown error");
-            
+
         } catch (err) {
             // Network failures
             console.error(`[AI] Network error with model ${currentModel}:`, err.message);
         }
     }
-    
+
     // If the loop finishes without returning, all models failed
     throw new Error("All fallback models failed.");
 }
@@ -262,91 +261,78 @@ app.post('/api/upload-document', upload.single('document'), async (req, res) => 
 
         let extractedSummary = "";
         const mimeType = req.file.mimetype;
-        
-        if (mimeType === 'text/plain') {
-            try {
-                const rawText = req.file.buffer.toString('utf-8').substring(0, 3000);
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        model: "llama3-8b-8192", 
-                        messages: [
-                            { role: "system", content: "Extract key medical diagnoses, abnormal lab values, and medications from this text. Be concise." },
-                            { role: "user", content: rawText }
-                        ],
-                        temperature: 0.1
-                    })
-                });
-                const data = await response.json();
-                extractedSummary = data.choices?.[0]?.message?.content?.trim() || "Text extracted but could not summarize.";
-            } catch (err) {
-                console.error("TXT Parse Error:", err);
-                extractedSummary = "Failed to read text file contents.";
-            }
-        }
-        else if (mimeType === 'application/pdf') {
-            try {
-                const pdfData = await pdfParse(req.file.buffer);
-                const rawText = pdfData.text.substring(0, 3000); 
 
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        model: "llama3-8b-8192",
-                        messages: [
-                            { role: "system", content: "Extract key medical diagnoses, abnormal lab values, and medications from this text. Be concise." },
-                            { role: "user", content: rawText }
-                        ],
-                        temperature: 0.1
-                    })
+        // Helper function for safe LLM extraction with fallback
+        async function runGroqExtractionWithFallback(messages, isVision = false) {
+            // Define primary model based on type, with Qwen as the unified fallback
+            const primaryModel = isVision ? "llama-3.2-11b-vision-preview" : "llama3-70b-8192";
+            const fallbackModel = "qwen/qwen3.6-27b";
+
+            try {
+                // Attempt Primary Model
+                const completion = await groq.chat.completions.create({
+                    messages,
+                    model: primaryModel,
+                    temperature: 0.1,
+                    ...(isVision ? { max_tokens: 300 } : {})
                 });
-                const data = await response.json();
-                extractedSummary = data.choices?.[0]?.message?.content?.trim() || "Text extracted but could not summarize.";
-            } catch (err) {
-                console.error("PDF Parse Error:", err);
-                extractedSummary = "Failed to read PDF contents.";
+                return completion.choices[0]?.message?.content?.trim();
+            } catch (primaryErr) {
+                console.warn(`[OCR Fallback] Primary model (${primaryModel}) failed. Switching to Qwen (${fallbackModel}). Error:`, primaryErr.message);
+                
+                try {
+                    // Attempt Qwen Fallback Model
+                    const fallbackCompletion = await groq.chat.completions.create({
+                        messages,
+                        model: fallbackModel,
+                        temperature: 0.1,
+                        ...(isVision ? { max_tokens: 300 } : {})
+                    });
+                    return fallbackCompletion.choices[0]?.message?.content?.trim();
+                } catch (fallbackErr) {
+                    console.error(`[OCR Fallback] Qwen fallback model also failed:`, fallbackErr.message);
+                    throw fallbackErr;
+                }
             }
         }
-        else if (mimeType.startsWith('image/')) {
-            try {
-                const base64Image = req.file.buffer.toString('base64');
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.2-11b-vision-preview",
-                        messages: [
-                            {
-                                role: "user",
-                                content: [
-                                    { type: "text", text: "You are a medical scribe. Read this report/prescription. List the diagnoses, abnormal lab values, and prescribed medicines clearly and concisely." },
-                                    { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Image}` } }
-                                ]
-                            }
-                        ],
-                        temperature: 0.1,
-                        max_tokens: 300
-                    })
-                });
-                const data = await response.json();
-                extractedSummary = data.choices?.[0]?.message?.content?.trim() || "Image processed but no data found.";
-            } catch (err) {
-                console.error("Vision API Error:", err);
-                extractedSummary = "Failed to process image.";
+
+        // --- Handling Plain Text (.txt) or PDFs ---
+        if (mimeType === 'text/plain' || mimeType === 'application/pdf') {
+            let rawText = "";
+            if (mimeType === 'application/pdf') {
+                const pdfData = await pdfParse(req.file.buffer);
+                rawText = pdfData.text.substring(0, 3000);
+            } else {
+                rawText = req.file.buffer.toString('utf-8').substring(0, 3000);
             }
+
+            const messages = [
+                { role: "system", content: "Extract key medical diagnoses, abnormal lab values, and medications from this text. Be concise." },
+                { role: "user", content: rawText }
+            ];
+
+            const result = await runGroqExtractionWithFallback(messages, false);
+            extractedSummary = result || "Extracted.";
+        } 
+        // --- Handling Images (JPG, PNG) using Groq Vision ---
+        else if (mimeType.startsWith('image/')) {
+            const base64Image = req.file.buffer.toString('base64');
+            const imageUrl = `data:${mimeType};base64,${base64Image}`;
+
+            const messages = [
+                {
+                    role: "user",
+                    content: [
+                        { type: "text", text: "You are a medical scribe. Read this report/prescription. List the diagnoses, abnormal lab values, and prescribed medicines clearly and concisely." },
+                        { type: "image_url", image_url: { url: imageUrl } }
+                    ]
+                }
+            ];
+
+            const result = await runGroqExtractionWithFallback(messages, true);
+            extractedSummary = result || "Image processed.";
         } else {
-            extractedSummary = "Unsupported file type uploaded.";
+            extractedSummary = "Unsupported file type.";
         }
 
         res.status(200).json({
@@ -355,7 +341,7 @@ app.post('/api/upload-document', upload.single('document'), async (req, res) => 
             extractedSummary
         });
     } catch (error) {
-        console.error("Doc Upload Error:", error);
+        console.error("SDK Upload Error:", error);
         res.status(500).json({ error: "Document processing failed" });
     }
 });
@@ -365,7 +351,28 @@ app.post('/api/chat', async (req, res) => {
     try {
         const messages = req.body.messages;
         if (!Array.isArray(messages)) return res.status(400).json({ error: "Data format mismatch. Send 'messages' array." });
+        const jwt = require('jsonwebtoken'); // Ensure this is imported at top of App.js
+        const User = require('./models/userModel.js');
+        const token = req.cookies.jwt;
 
+        let patientMemory = "No previous records found. Ask the patient for their medical history.";
+
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const user = await User.findById(decoded.userId);
+                if (user && (user.medicalHistory || user.allergies || user.medications)) {
+                    patientMemory = `
+                    PREVIOUS MEDICAL RECORD ON FILE:
+                    - Past Medical History: ${user.medicalHistory || "None documented"}
+                    - Known Allergies: ${user.allergies || "None documented"}
+                    - Past/Current Medications: ${user.medications || "None documented"}
+                    
+                    CRITICAL INSTRUCTION: Do NOT ask the patient to repeat their medical history if it is listed above. Acknowledge it gently (e.g. "I see from your records you have a history of...") and ask if anything has changed.
+                    `;
+                }
+            } catch (e) { console.log("Chat LTM: No valid session"); }
+        }
         const systemPrompt = {
             role: "system",
             content: `You are Parchi, a dual-mode clinical intake assistant acting as receptionist, nurse, and scribe for both Allopathic and AYUSH (Ayurveda) settings.
@@ -462,9 +469,12 @@ Never wrap the JSON in \`\`\`json or any other formatting. Output raw JSON only.
 
         // Define your exact fallback order
         const modelsToTry = [
-            "openai/gpt-oss-20b", // Primary Choice
-            "llama3-70b-8192",    // Secondary Fallback
-            "llama3-8b-8192"      // Tertiary Lightweight Fallback
+            "openai/gpt-oss-120b",
+            "llama3-70b-8192",
+            "openai/gpt-oss-20b", 
+            "llama-3.3-70b-versatile", 
+            "llama-3.1-70b-versatile", 
+                 
         ];
 
         // Process request through the fallback loop
@@ -500,7 +510,26 @@ app.post('/api/generate-summary-pdf', async (req, res) => {
         const data = req.body || {};
         const referenceId = generateReferenceId();
         const pdfBuffer = await buildSummaryPdf(data, referenceId);
+        const jwt = require('jsonwebtoken');
+        const User = require('./models/userModel.js');
+        const token = req.cookies.jwt;
 
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const updateFields = {};
+
+                // Only save if the AI actually found real data
+                if (data.medicalHistory && data.medicalHistory.length > 10) updateFields.medicalHistory = data.medicalHistory;
+                if (data.knownAllergies && data.knownAllergies.length > 5) updateFields.allergies = data.knownAllergies;
+                if (data.currentMedications && data.currentMedications.length > 5) updateFields.medications = data.currentMedications;
+
+                if (Object.keys(updateFields).length > 0) {
+                    await User.findByIdAndUpdate(decoded.userId, updateFields);
+                    console.log("[AI] Successfully saved patient memory to DB.");
+                }
+            } catch (e) { console.log("LTM Save Error:", e.message); }
+        }
         const summaryId = crypto.randomUUID();
         const filePath = path.join(TEMP_DIR, `summary_${summaryId}.pdf`);
         fs.writeFileSync(filePath, pdfBuffer);
@@ -568,7 +597,7 @@ app.post('/transcribe', upload.single('audioFile'), async (req, res) => {
                 "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: "llama3-8b-8192", 
+                model: "llama3-8b-8192",
                 messages: [
                     { role: "system", content: "Translate the user's message to English. If it is already in English, return it unchanged. Respond with ONLY the translated text, nothing else." },
                     { role: "user", content: originalText }

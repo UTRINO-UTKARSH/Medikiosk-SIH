@@ -59,6 +59,7 @@
   },
   "aiChat": {
     "Ai-name":"Parchi AI",
+    "requestedDocuments":"Requested Document",
     "newChat":"New Chat",
     "patientName":"Patient Name",
     "recents":"Recents",

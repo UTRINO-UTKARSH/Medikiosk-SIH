@@ -251,6 +251,7 @@ const AI = () => {
 
       const res = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
+        credentials:"include",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ 
           messages: formattedMessages,
@@ -308,7 +309,7 @@ const AI = () => {
       formData.append("document", file);
       formData.append("docType", docType);
 
-      const res = await fetch(`${API_URL}/api/upload-document`, { method: "POST", body: formData });
+      const res = await fetch(`${API_URL}/api/upload-document`, { method: "POST", body: formData,credentials:"include" });
       const data = await res.json();
 
       updateActiveChat(chat => ({
@@ -334,6 +335,7 @@ const AI = () => {
     try {
       const res = await fetch(`${API_URL}/api/generate-summary-pdf`, {
         method: "POST",
+        credentials:"include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...activeChat.parsedData,
@@ -645,7 +647,7 @@ const AI = () => {
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">{t('aiChat.Ai-name')}</p>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">{t('aiChat.medicalHistory')}</p>
                     <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-xl border border-gray-200">
                       {activeChat.parsedData.medicalHistory || t('aiChat.noneReported')}
                     </p>
