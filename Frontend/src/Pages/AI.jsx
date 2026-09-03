@@ -1,10 +1,12 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Send, Bot, User, FileText, X, Square } from 'lucide-react';
+import { Mic, Send, Bot, User, FileText, X, Square, Upload, Check, FileUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+const STORAGE_KEY = "parchi_chat_session";
+
 // --- Custom Hook for Audio Recording (UNCHANGED) ---
-function useAudioRecorder(onTranscriptionComplete, apiUrl) { // <-- Added apiUrl parameter
+function useAudioRecorder(onTranscriptionComplete, apiUrl) {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const mediaRecorderRef = useRef(null);
@@ -25,16 +27,15 @@ function useAudioRecorder(onTranscriptionComplete, apiUrl) { // <-- Added apiUrl
         setIsTranscribing(true);
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const formData = new FormData();
-        formData.append("audioFile", audioBlob, "patient_audio.webm"); // <-- Must match the multer upload.single('audioFile') in Express
+        formData.append("audioFile", audioBlob, "patient_audio.webm");
 
         try {
-          // Send to the Express backend instead of Python
           const response = await fetch(`${apiUrl}/transcribe`, {
             method: "POST",
             body: formData,
           });
           const data = await response.json();
-          if (data.transcription) onTranscriptionComplete(data.transcription); // <-- Make sure this matches the Express response key
+          if (data.transcription) onTranscriptionComplete(data.transcription);
         } catch (error) {
           console.error("Transcription error:", error);
         } finally {
@@ -66,12 +67,50 @@ const AI = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [parsedData, setParsedData] = useState(null);
+  const [requestedDocuments, setRequestedDocuments] = useState([]);
+  const [uploadedDocs, setUploadedDocs] = useState({}); // { "recent blood test": fileObj }
+  const [uploadingDoc, setUploadingDoc] = useState(null);
 
   const chatEndRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-  const [messages, setMessages] = useState([
-    { role: "ai", text: t('aiChat.greeting') }
-  ]);
+
+  // --- Load from localStorage on mount, fallback to greeting ---
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.messages?.length) return parsed.messages;
+      }
+    } catch (e) {
+      console.error("Failed to load saved session:", e);
+    }
+    return [{ role: "ai", text: t('aiChat.greeting') }];
+  });
+
+  // Restore parsedData / requestedDocuments alongside messages on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.parsedData) setParsedData(parsed.parsedData);
+        if (parsed.requestedDocuments) setRequestedDocuments(parsed.requestedDocuments);
+      }
+    } catch (e) {
+      console.error("Failed to restore session state:", e);
+    }
+     
+  }, []);
+
+  // Persist to localStorage whenever relevant state changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, parsedData, requestedDocuments }));
+    } catch (e) {
+      console.error("Failed to save session:", e);
+    }
+  }, [messages, parsedData, requestedDocuments]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -86,20 +125,21 @@ const AI = () => {
   const handleSubmission = async (textToSend) => {
     if (!textToSend.trim()) return;
 
-    // 1. Add user message to UI
-    setMessages((prev) => [...prev, { role: "user", text: textToSend }]);
+    const newUserMessage = { role: "user", text: textToSend };
+    setMessages((prev) => [...prev, newUserMessage]);
     setPatientInput("");
     setIsLoading(true);
 
     try {
-      // PRO-TIP: We send the whole conversation history so the AI remembers context!
-      const conversationHistory = messages.map(m => `${m.role === 'ai' ? 'AI' : 'Patient'}: ${m.text}`).join('\n');
-      const fullPrompt = `${conversationHistory}\nPatient: ${textToSend}`;
+      const formattedMessages = [...messages, newUserMessage].map(m => ({
+        role: m.role === 'ai' ? 'assistant' : 'user',
+        content: m.text
+      }));
 
       const res = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ prompt: fullPrompt }) // Sends history + new input
+        body: JSON.stringify({ messages: formattedMessages })
       });
 
       const data = await res.json();
@@ -112,7 +152,24 @@ const AI = () => {
 
       const parsed = JSON.parse(data.response);
       setMessages((prev) => [...prev, { role: "ai", text: parsed.chatReply || t('aiChat.defaultReply') }]);
-      setParsedData(parsed);
+
+      setParsedData((prev) => ({
+        ...prev,
+        patientName: parsed.patientName || prev?.patientName || "",
+        age: parsed.age || prev?.age || "",
+        medicalHistory: parsed.medicalHistory || prev?.medicalHistory || "",
+        primarySymptoms: parsed.primarySymptoms?.length ? parsed.primarySymptoms : prev?.primarySymptoms || [],
+        physicianSummary: parsed.physicianSummary || prev?.physicianSummary || "",
+        currentMode: parsed.currentMode || "Intake"
+      }));
+
+      if (parsed.requestedDocuments?.length) {
+        setRequestedDocuments(parsed.requestedDocuments);
+      }
+
+      if (parsed.currentMode === "Summary") {
+        setShowSummary(true);
+      }
 
     } catch (error) {
       console.error("AI chat error:", error);
@@ -124,6 +181,41 @@ const AI = () => {
       setIsLoading(false);
     }
   };
+
+  // --- Document upload handler (per requested document type) ---
+  const handleDocUpload = async (docType, file) => {
+    if (!file) return;
+    setUploadingDoc(docType);
+    try {
+      const formData = new FormData();
+      formData.append("document", file);
+      formData.append("docType", docType);
+
+      const res = await fetch(`${API_URL}/api/upload-document`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      setUploadedDocs((prev) => ({ ...prev, [docType]: file.name }));
+
+      // Tell the AI a document was uploaded, feeding back any extracted text/summary
+      const noteMessage = data.extractedSummary
+        ? `[Uploaded ${docType}: ${file.name}] Extracted info: ${data.extractedSummary}`
+        : `[Uploaded ${docType}: ${file.name}]`;
+      handleSubmission(noteMessage);
+
+    } catch (error) {
+      console.error("Document upload error:", error);
+    } finally {
+      setUploadingDoc(null);
+    }
+  };
+
+  const handleSkipDocuments = () => {
+    handleSubmission(t('aiChat.noDocumentsToUpload') || "I don't have any of these documents to upload.");
+  };
+
   const { isRecording, isTranscribing, startRecording, stopRecording } = useAudioRecorder((transcribedText) => {
     handleSubmission(transcribedText);
   }, API_URL);
@@ -133,8 +225,10 @@ const AI = () => {
     else startRecording();
   };
 
+  const showDocumentUploadPanel = requestedDocuments.length > 0 && parsedData?.currentMode === "DocumentRequest";
+
   return (
-    <div className="bg-gray-100 flex min-h-screen items-center justify-center  p-2 md:p-10">
+    <div className="bg-gray-100 flex min-h-screen items-center justify-center p-2 md:p-10">
 
       {/* Main Chat Container */}
       <div className="w-full max-w-3xl bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col h-[85vh]">
@@ -172,6 +266,43 @@ const AI = () => {
               </div>
             </div>
           ))}
+
+          {/* Document Upload Panel — shown when AI requests specific documents */}
+          {showDocumentUploadPanel && (
+            <div className="ml-11 bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+              <p className="text-xs font-bold uppercase text-blue-950 flex items-center gap-2">
+                <FileUp size={14} /> {t('aiChat.requestedDocuments') || "Requested Documents"}
+              </p>
+              {requestedDocuments.map((docType, idx) => (
+                <div key={idx} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
+                  <span className="text-sm text-gray-800 flex-1">{docType}</span>
+                  {uploadedDocs[docType] ? (
+                    <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
+                      <Check size={14} /> {uploadedDocs[docType]}
+                    </span>
+                  ) : (
+                    <label className={`flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg cursor-pointer transition ${uploadingDoc === docType ? "bg-orange-100 text-orange-600 cursor-wait" : "bg-blue-100 text-blue-950 hover:bg-blue-200"}`}>
+                      <Upload size={14} />
+                      {uploadingDoc === docType ? (t('aiChat.uploading') || "Uploading...") : (t('aiChat.upload') || "Upload")}
+                      <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        className="hidden"
+                        disabled={uploadingDoc !== null}
+                        onChange={(e) => handleDocUpload(docType, e.target.files[0])}
+                      />
+                    </label>
+                  )}
+                </div>
+              ))}
+              <button
+                onClick={handleSkipDocuments}
+                className="text-xs text-gray-500 hover:text-gray-700 underline self-start mt-1"
+              >
+                {t('aiChat.dontHaveDocuments') || "I don't have any of these"}
+              </button>
+            </div>
+          )}
 
           {/* Loading Indicator */}
           {isLoading && (
@@ -273,6 +404,19 @@ const AI = () => {
                       {parsedData.medicalHistory || t('aiChat.noneReported')}
                     </p>
                   </div>
+
+                  {Object.keys(uploadedDocs).length > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-500 font-bold uppercase mb-1">{t('aiChat.uploadedDocuments') || "Uploaded Documents"}</p>
+                      <div className="flex flex-col gap-1">
+                        {Object.entries(uploadedDocs).map(([docType, fileName], idx) => (
+                          <p key={idx} className="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg border border-gray-100 flex items-center gap-2">
+                            <Check size={14} className="text-green-600" /> {docType}: {fileName}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <p className="text-xs text-gray-500 font-bold uppercase mb-1">{t('aiChat.clinicalSummary')}</p>

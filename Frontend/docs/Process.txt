@@ -14,9 +14,11 @@ INSTEAD OF TOKEN NO. USE PHONE NUMBERS SINCE THEY AER UNIQUE AND CAN BE USE IN A
 
 FIX: CHANGE ACCESS CODE TO PHONE NUMBER THEN REMOVE TOKEN(qr CODE SCANNER).
 FIX: Replaced Nodemailer with Brevo's HTTP API to bypass outbound SMTP port restrictions on Render and enable reliable OTP email delivery.
+#### NEW CHANGES##
+Note on AI Model: Parchi was originally designed to run fully offline using a local qwen3:4b model via Ollama, keeping patient data on-device. During development, we found qwen3:4b struggled to reliably hold multi-turn conversation state, track our 5-step intake flow, and enforce strict JSON output simultaneously — a known limitation of small (4B) models — leading to malformed responses and broken JSON.
 
-
+For this submission, the Groq API (openai/gpt-oss-120b, open-weight, free-tier) as a fallback to ensure reliable structured output for the demo. Local, on-device inference remains our production roadmap — critical for deployment in clinics with unreliable connectivity — and we plan to revisit the local model with either a larger open-source model (7B+) or an improved prompt/architecture design once further optimized for constrained hardware.
 
 
 DEPLOYMENT ATTEMPT COUNTER= 13
-if u fail into deployment at any place or any error is seen then increase the counter
+if u fail into deployment at any place or any error is seen then increase the counter     
