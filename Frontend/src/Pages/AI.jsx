@@ -141,7 +141,7 @@ const AI = () => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${API_URL}/api/users/me`, { credentials: "include" });
+        const res = await fetch(`${API_URL}/api/users/check-auth`, { credentials: "include" });
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled) setCurrentUser(data.user || data);

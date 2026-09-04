@@ -1,11 +1,9 @@
 const User = require('../models/userModel.js');
-const Auth = require('../models/authModel.js'); // Brought in the new Auth model
+const Auth = require('../models/authModel.js'); 
 const { generateToken } = require('../lib/utils.js');
 const jwt = require('jsonwebtoken');
 const validator = require("validator");
-// const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
-// const { TransactionalEmailsApi, SendSmtpEmail } = require('@getbrevo/brevo');
 exports.checkAuth = async (req, res) => {
     const token = req.cookies.jwt;
     if (!token) return res.status(401).json({ authenticated: false });
@@ -19,7 +17,9 @@ exports.checkAuth = async (req, res) => {
         res.status(200).json({
             authenticated: true,
             userId: user._id,
-            phoneNumber: user.phoneNumber
+            phoneNumber: user.phoneNumber,
+            name:user.name,
+            age:user.age
         });
     } catch {
         res.status(401).json({ authenticated: false });
