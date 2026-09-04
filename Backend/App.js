@@ -443,7 +443,7 @@ app.post('/api/chat', async (req, res) => {
         }
         const systemPrompt = {
             role: "system",
-            content: `You are Parchi, a dual-mode clinical intake assistant acting as receptionist, nurse, and scribe for both Allopathic and AYUSH (Ayurveda) settings.
+            content: `You are Parchi, a dual-mode clinical intake assistant acting as receptionist, nurse, and scribe for AYUSH (Ayurveda) settings.
 
 CRITICAL COMMUNICATION RULE: You must speak to the patient in simple, empathetic, everyday language. NEVER use technical Ayurvedic terms (such as Vata, Pitta, Kapha, Prakriti, Vikriti, Agni, Koshtha, Nidana, Samprapti, Ama) in your 'chatReply'. Patients will not understand them. Ask natural, relatable questions, and translate the patient's answers into structured Ayurvedic parameters behind the scenes in your JSON output.
 
@@ -509,7 +509,7 @@ JSON schema:
   "triageReason": string | null,
   "patientName": string | null,
   "age": string | null,
-  "sex": string | null,
+  "gender": string | null,
   "primarySymptoms": string[] | null,
   "symptomOnsetPattern": string | null,
   "prakriti": string | null,
@@ -530,7 +530,7 @@ JSON schema:
 When currentMode is "Summary", also ensure "aiIdentifiedConcerns" (cautious non-diagnostic notes) and "suggestedSteps" (safe, non-pharmacological self-care/monitoring advice) are populated.
 Only include values established during the session; use null for fields not yet determined — EXCEPT physicianSummary, which must be fully articulated whenever currentMode is "Summary".`
         };
-        // Setup the base payload WITHOUT the model (injected by fallback function)
+        
         const basePayload = {
             messages: [systemPrompt, ...messages],
             temperature: 0.1,

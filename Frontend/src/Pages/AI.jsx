@@ -523,8 +523,7 @@ const AI = () => {
             className="bg-orange-500 hover:bg-orange-600 text-white px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 shadow-xs transition shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500"
           >
             <FileText size={15} className="shrink-0" />
-            <span className="hidden xs:inline sm:inline">{t('aiChat.viewSummary') || "View Summary"}</span>
-            <span className="inline xs:hidden">Summary</span>
+            <span className="hidden xs:inline sm:inline">{t('aiChat.viewSummary')}</span>
           </button>
         </header>
 
