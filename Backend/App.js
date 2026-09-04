@@ -5,9 +5,9 @@ require('dotenv').config();
 const connectDb = require("./lib/db.js");
 const app = express();
 const port = process.env.PORT || 3001;
-const pdfParse = require('pdf-parse');
+const pdfParseModule = require('pdf-parse');
 const Groq = require("groq-sdk");
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });    
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:3001",
@@ -48,6 +48,25 @@ app.use(cookieParser());
 const userRoutes = require('./routes/routes.js');
 app.use('/api/users', userRoutes);
 
+app.get('/api/users/me', async (req, res) => {
+    try {
+        const jwt = require('jsonwebtoken');
+        const User = require('./models/userModel.js');
+        const token = req.cookies.jwt;
+
+        if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.userId).select('-password');
+
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        res.json({ user });
+    } catch (error) {
+        res.status(401).json({ error: "Invalid or expired session" });
+    }
+});
+
 app.get('/', (req, res) => {
     res.send("Parchi API is running");
 });
@@ -79,6 +98,35 @@ function generateReferenceId() {
     const dd = String(date.getDate()).padStart(2, "0");
     const rand = crypto.randomBytes(2).toString("hex").toUpperCase();
     return `PCH-${yy}${mm}${dd}-${rand}`;
+}
+
+async function extractTextFromPdf(buffer) {
+    // 1. Traditional v1 default function: pdf(buffer)
+    if (typeof pdfParseModule === 'function') {
+        const data = await pdfParseModule(buffer);
+        return data.text || "";
+    }
+    // 2. Transpiled CommonJS default: pdf.default(buffer)
+    if (pdfParseModule.default && typeof pdfParseModule.default === 'function') {
+        const data = await pdfParseModule.default(buffer);
+        return data.text || "";
+    }
+    // 3. Modern v2 class API: new PDFParse({ data: buffer }).getText()
+    const PDFClass = pdfParseModule.PDFParse || pdfParseModule;
+    if (typeof PDFClass === 'function') {
+        try {
+            const parser = new PDFClass({ data: buffer });
+            if (typeof parser.getText === 'function') {
+                const result = await parser.getText();
+                return result.text || "";
+            }
+        } catch (_) {
+            // fallback if it was callable without new
+            const data = await PDFClass(buffer);
+            return data.text || "";
+        }
+    }
+    throw new Error("Unable to initialize pdf-parse module.");
 }
 
 // --- NEW: HL7 FHIR R4 Bundle Generator ---
@@ -279,7 +327,7 @@ app.post('/api/upload-document', upload.single('document'), async (req, res) => 
                 return completion.choices[0]?.message?.content?.trim();
             } catch (primaryErr) {
                 console.warn(`[OCR Fallback] Primary model (${primaryModel}) failed. Switching to Qwen (${fallbackModel}). Error:`, primaryErr.message);
-                
+
                 try {
                     // Attempt Qwen Fallback Model
                     const fallbackCompletion = await groq.chat.completions.create({
@@ -300,8 +348,8 @@ app.post('/api/upload-document', upload.single('document'), async (req, res) => 
         if (mimeType === 'text/plain' || mimeType === 'application/pdf') {
             let rawText = "";
             if (mimeType === 'application/pdf') {
-                const pdfData = await pdfParse(req.file.buffer);
-                rawText = pdfData.text.substring(0, 3000);
+                const extractedPdfText = await extractTextFromPdf(req.file.buffer);
+                rawText = extractedPdfText.substring(0, 3000);
             } else {
                 rawText = req.file.buffer.toString('utf-8').substring(0, 3000);
             }
@@ -313,7 +361,7 @@ app.post('/api/upload-document', upload.single('document'), async (req, res) => 
 
             const result = await runGroqExtractionWithFallback(messages, false);
             extractedSummary = result || "Extracted.";
-        } 
+        }
         // --- Handling Images (JPG, PNG) using Groq Vision ---
         else if (mimeType.startsWith('image/')) {
             const base64Image = req.file.buffer.toString('base64');
@@ -471,10 +519,10 @@ Never wrap the JSON in \`\`\`json or any other formatting. Output raw JSON only.
         const modelsToTry = [
             "openai/gpt-oss-120b",
             "llama3-70b-8192",
-            "openai/gpt-oss-20b", 
-            "llama-3.3-70b-versatile", 
-            "llama-3.1-70b-versatile", 
-                 
+            "openai/gpt-oss-20b",
+            "llama-3.3-70b-versatile",
+            "llama-3.1-70b-versatile",
+
         ];
 
         // Process request through the fallback loop
