@@ -3,7 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require('dotenv').config();
 const connectDb = require("./lib/db.js");
-const Record = require('./models/recordModel.js');
+const Record = require('./models/recordModelTemp.js');
 const app = express();
 const port = process.env.PORT || 3001;
 const pdfParseModule = require('pdf-parse');
