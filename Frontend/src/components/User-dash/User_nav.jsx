@@ -12,12 +12,11 @@ const User_nav = () => {
   const location = useLocation();
 
   const navItems = [
-    { label: t('userNav.home'), path: "/user-dash" },
-    { label: t('userNav.labRecords'), path: "/user-reports" },
-    { label: t('userNav.download'), path: "/download" },
-    { label: t('userNav.timeTable'), path: "/time-table" },
-    { label: t('userNav.medicalHistory'), path: "/medical-history" },
-  ];
+  { label: t('userNav.home'), path: "/user-dash" },
+  { label: t('userNav.labRecords') , path: "/user-reports" },
+  { label: t('userNav.medicalhistory'), path: "/history" },
+  { label: t('userNav.timeTable') , path: "/time-table" },
+];
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   useEffect(() => {
     // Context already has a real name (set right after the QR scan) —
