@@ -174,7 +174,7 @@ function buildSummaryPdf(data, referenceId) {
         const GRAY = "#555555";
 
         doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(20).text("PARCHI");
-        doc.fillColor(GRAY).font("Helvetica-Bold").fontSize(11).text("AI-GENERATED HEALTH SUMMARY (AYUSH & ALLOPATHIC)");
+        doc.fillColor(GRAY).font("Helvetica-Bold").fontSize(11).text("AI-GENERATED HEALTH SUMMARY (AYUSH)");
         doc.moveDown(0.5);
         doc.strokeColor("#dddddd").moveTo(50, doc.y).lineTo(545, doc.y).stroke();
         doc.moveDown(0.8);
@@ -530,7 +530,7 @@ JSON schema:
 When currentMode is "Summary", also ensure "aiIdentifiedConcerns" (cautious non-diagnostic notes) and "suggestedSteps" (safe, non-pharmacological self-care/monitoring advice) are populated.
 Only include values established during the session; use null for fields not yet determined — EXCEPT physicianSummary, which must be fully articulated whenever currentMode is "Summary".`
         };
-        
+
         const basePayload = {
             messages: [systemPrompt, ...messages],
             temperature: 0.1,

@@ -21,10 +21,7 @@ const Bottom = () => {
           <Buttons text={t('common.hindi')} design={"px-2 md:px-6 py-2 cursor-pointer border-2 rounded-[5px] font-medium text-[20px] md:text-[24px] text-blue-950 border-gray-400 m-2 md:m-4 bg-white"} />
 
         </Link>
-        <Link>
-          <Buttons text={t('common.marathi')} design={"px-2 md:px-6 py-2 cursor-pointer border-2 rounded-[5px] font-medium text-[20px] md:text-[24px] text-blue-950 border-gray-400 m-2 md:m-4 bg-white"} />
-
-        </Link>
+      
       </div>
     </div>
   )
