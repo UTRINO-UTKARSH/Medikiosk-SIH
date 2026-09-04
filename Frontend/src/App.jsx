@@ -13,10 +13,11 @@ import AI from './Pages/AI';
 import UploadDocuments from './Pages/UploadDocuments';
 import UserDash from './components/User-dash/UserDash';
 import LabReport from './components/User-dash/LabReport';
-import Download from './components/User-dash/Download';
+import Download from './components/User-dash/Downloads';
 import TimeTable from './components/User-dash/TimeTable';
 import Medicalhistory from './components/User-dash/Medicalhistory';
 import QrScanner from './Pages/QrScanner';
+import Downloads from './components/User-dash/Downloads';
 // import DoctorDashboard from './components/hospital/DoctorDashboard';
 
 const publicRoutes = ['/', '/auth', '/login','/user-dash'];
@@ -102,6 +103,7 @@ const AppContent = () => {
         <Route path="/time-table" element={<ProtectedRoute><TimeTable /></ProtectedRoute>} />
         <Route path="/medical-history" element={<ProtectedRoute><Medicalhistory /></ProtectedRoute>} />
         <Route path="/doc" element={<ProtectedRoute><QrScanner /></ProtectedRoute>} />
+        <Route path="/download" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
 
         {/* Protected Routes - Other Features */}
         <Route path="/upload" element={<ProtectedRoute><UploadDocuments /></ProtectedRoute>} />

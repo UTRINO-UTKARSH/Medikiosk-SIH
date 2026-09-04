@@ -3,6 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require('dotenv').config();
 const connectDb = require("./lib/db.js");
+const Record = require('./models/recordModel.js');
 const app = express();
 const port = process.env.PORT || 3001;
 const pdfParseModule = require('pdf-parse');
@@ -47,25 +48,6 @@ app.use(cookieParser());
 // User/Auth routes remain exactly as they were
 const userRoutes = require('./routes/routes.js');
 app.use('/api/users', userRoutes);
-
-app.get('/api/users/me', async (req, res) => {
-    try {
-        const jwt = require('jsonwebtoken');
-        const User = require('./models/userModel.js');
-        const token = req.cookies.jwt;
-
-        if (!token) return res.status(401).json({ error: "Not authenticated" });
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.userId).select('-password');
-
-        if (!user) return res.status(404).json({ error: "User not found" });
-
-        res.json({ user });
-    } catch (error) {
-        res.status(401).json({ error: "Invalid or expired session" });
-    }
-});
 
 app.get('/', (req, res) => {
     res.send("Parchi API is running");
@@ -221,9 +203,11 @@ function buildSummaryPdf(data, referenceId) {
         if (data.symptomOnsetPattern) doc.text(`Onset / Pattern: ${data.symptomOnsetPattern}`);
 
         section("2. AYUSH Diagnostic Context (Dashavidha Pariksha)");
-        doc.text(`Prakriti (Constitution): ${data.prakriti || "Not assessed"}`);
+        doc.text(`Prakriti (Constitution) / Vikriti (Imbalance): ${data.prakriti || "Not assessed"} / ${data.vikriti || "Not assessed"}`);
+        doc.text(`Agni (Digestive Fire) / Koshtha (Bowel Nature): ${data.agni || "Not assessed"} / ${data.koshtha || "Not assessed"}`);
         doc.text(`Ahara-Vihara (Diet & Lifestyle): ${data.aharaVihara || "Not assessed"}`);
-        doc.text(`Agni (Digestive Capacity): ${data.agni || "Not assessed"}`);
+        doc.text(`Nidana (Etiological Triggers): ${data.nidana || "Not identified"}`);
+        doc.text(`Samprapti (Pathogenesis Pathway): ${data.samprapti || "Not formulated"}`);
 
         section("3. Relevant Medical History");
         doc.text(`Medical history: ${data.medicalHistory || "No major previous illness reported."}`);
@@ -388,10 +372,46 @@ app.post('/api/upload-document', upload.single('document'), async (req, res) => 
             fileName: req.file.originalname,
             extractedSummary
         });
+
+        // --- Persist the file + a Record so it shows up on the Download page ---
+        // (fire-and-forget, after the response — doesn't block/slow down the upload)
+        try {
+            const jwt = require('jsonwebtoken');
+            const token = req.cookies.jwt;
+            if (!token) return;
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const docId = crypto.randomUUID();
+            const ext = path.extname(req.file.originalname) || '';
+            const storedPath = path.join(TEMP_DIR, `document_${docId}${ext}`);
+            fs.writeFileSync(storedPath, req.file.buffer);
+
+            await Record.create({
+                userId: decoded.userId,
+                type: 'document',
+                title: req.body.docType || req.file.originalname,
+                fileUrl: `/api/document/${docId}${ext}`,
+                docType: req.body.docType || null,
+                fileName: req.file.originalname,
+            });
+        } catch (e) {
+            console.log("Record Save Error (document):", e.message);
+        }
     } catch (error) {
         console.error("SDK Upload Error:", error);
         res.status(500).json({ error: "Document processing failed" });
     }
+});
+
+// Serves an uploaded document back (e.g. from the Download page).
+// Same ephemeral-storage caveat as /api/summary-pdf/:id — see TEMP_DIR notes.
+app.get('/api/document/:filename', (req, res) => {
+    const filePath = path.join(TEMP_DIR, req.params.filename);
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).send("Document not found or expired.");
+    }
+    res.setHeader("Content-Disposition", `inline; filename="${req.params.filename}"`);
+    fs.createReadStream(filePath).pipe(res);
 });
 
 // --- AI Chat Processing ---
@@ -425,61 +445,62 @@ app.post('/api/chat', async (req, res) => {
             role: "system",
             content: `You are Parchi, a dual-mode clinical intake assistant acting as receptionist, nurse, and scribe for both Allopathic and AYUSH (Ayurveda) settings.
 
-CRITICAL COMMUNICATION RULE: You must speak to the patient in simple, everyday language. NEVER use technical Ayurvedic terms (like Vata, Pitta, Kapha, Prakriti, Agni, Koshtha) in your 'chatReply'. Most patients do not know these words. Ask simple relatable questions to figure these out, and do the translation into Ayurvedic terms behind the scenes in your JSON output.
+CRITICAL COMMUNICATION RULE: You must speak to the patient in simple, empathetic, everyday language. NEVER use technical Ayurvedic terms (such as Vata, Pitta, Kapha, Prakriti, Vikriti, Agni, Koshtha, Nidana, Samprapti, Ama) in your 'chatReply'. Patients will not understand them. Ask natural, relatable questions, and translate the patient's answers into structured Ayurvedic parameters behind the scenes in your JSON output.
 
-Follow this flow strictly, one step at a time, asking only ONE question per turn:
-1. Patient name, age, and sex
-2. Chief complaint (Apply SOCRATES branching: politely ask follow-ups about Site, Onset, Character, Radiation, Associations, Time course, Exacerbating/relieving factors, and Severity).
-3. AYUSH Context: Gather details for Dashavidha Pariksha using PLAIN language. 
-   - To figure out 'Prakriti' (constitution): ask simple questions like "Do you generally feel cold or hot easily?", "Are you thin, medium, or heavily built?", or "Are you generally hyperactive or calm?"
-   - To figure out 'Agni' (digestion): ask "How is your appetite normally? Do you digest food easily or feel heavy/bloated?"
-   - To figure out 'Koshtha' (bowels): ask "Do your bowels clear easily every day, or do you tend to get constipated?"
-   - To figure out 'Ahara-Vihara': ask about their daily diet, sleep patterns, and physical activity.
-4. Past medical history and known allergies
-5. Document request (see below)
+Follow this flow strictly, one step at a time, asking only ONE focused question per turn:
+1. Patient name, age, and sex (skip if already provided in the verified profile).
+2. Chief complaint (Apply SOCRATES branching: politely explore Site, Onset, Character, Radiation, Associations, Time course, Exacerbating/relieving factors, and Severity).
+3. Nidana Exploration (Triggers & Causative Factors):
+   - Ask what dietary habits, emotional stressors, seasonal changes, or daily routines immediately preceded or seem to trigger the symptoms (e.g., "Have you recently eaten very spicy/oily food, skipped meals, experienced heavy stress, or been exposed to unusual weather?").
+4. Comprehensive AYUSH Context (Dashavidha Pariksha & Ahara-Vihara):
+   - Prakriti (baseline constitution) vs. Vikriti (current doshic imbalance): ask simple inquiries about baseline body build, sensitivity to weather/temperatures (cold vs. heat), and how their body is behaving differently right now.
+   - Agni (digestive fire & metabolism): ask about appetite consistency, bloating, heaviness after eating, or sour belching.
+   - Koshtha (bowel tendency): ask about bowel regularity, stool consistency, and tendency toward constipation or looseness.
+   - Ahara-Vihara (dietary & daily lifestyle patterns): ask about regular meal timings, sleep quality/duration, and daily physical activity levels.
+5. Past medical history and known allergies.
+6. Document request (see below).
 
-STEP 5 — DOCUMENT REQUEST:
-Once steps 1-4 are complete, set currentMode to "DocumentRequest" (not Summary yet).
-Based on the patient's chief complaint, symptoms, and history, identify 2-4 SPECIFIC types of documents or reports that would be clinically useful.
-In chatReply, clearly ask the patient to upload these.
+STEP 6 — DOCUMENT REQUEST:
+Once steps 1-5 are addressed, set currentMode to "DocumentRequest" (not Summary yet).
+Based on the chief complaint, symptoms, history, and suspected system involvement, identify 2-4 SPECIFIC types of documents or reports that would be clinically useful (e.g., recent blood panel, imaging report, previous prescription).
+In chatReply, clearly request these from the patient.
 List the document types in the "requestedDocuments" array field.
 
 HANDLING UPLOADS (CRITICAL RULE):
-When the user uploads a file, you will automatically receive a message starting with "[Uploaded...". 
-1. Read the extracted info provided in that message.
-2. If the user indicates they are finished (e.g., typing "here", "done", "that's all"), OR if they have uploaded the requested files, YOU MUST IMMEDIATELY switch currentMode to "Summary". 
-3. Do NOT reject files based on their extension. Accept any uploaded data. Do NOT get stuck in a loop asking for missing documents if the user indicates they are done.
+When the user uploads a file, you will automatically receive a message starting with "[Uploaded...".
+1. Read the extracted clinical findings provided in that message, noting any flagged lab values or medication regimens.
+2. If the user indicates they are finished (e.g., typing "here", "done", "that's all"), OR if they have uploaded the requested documents, YOU MUST IMMEDIATELY switch currentMode to "Summary".
+3. Do NOT reject files based on their extension. Accept any uploaded clinical data. Do NOT get stuck in a loop demanding documents if the user indicates they are done.
 
-STEP 6 — SUMMARY:
-After the document step is resolved, switch currentMode to "Summary" and stop asking questions.
+STEP 7 — SUMMARY & SAMPRAPTI SYNTHESIS:
+After the document step is resolved (files received or patient indicates they have none), switch currentMode to "Summary" and stop asking questions.
 
-CRITICAL: When currentMode is "Summary", you MUST write a real physicianSummary — never leave it null or empty at that point.
-The physicianSummary must be a concise, professional clinical note (4-6 sentences) written the way a nurse would hand off to a doctor, synthesizing everything gathered:
-- Patient's chief complaint and SOCRATES details
-- AYUSH context (Prakriti, Agni, Koshtha, Ahara-Vihara) evaluated from their simple answers.
-- Relevant medical history
-- Any relevant findings from uploaded documents, if provided
-- A brief note on possible urgency/triage priority if relevant
-Always end the physicianSummary with this disclaimer sentence: "This is an AI-generated preliminary summary intended to support consultation; final diagnosis and clinical decisions remain the responsibility of the treating physician."
+CRITICAL: When currentMode is "Summary", you MUST write a professional, high-yield physicianSummary — never leave it null or empty.
+The physicianSummary must be a coherent 4-6 sentence clinical handoff synthesizing:
+- Chief complaint with SOCRATES details.
+- Integrated AYUSH formulation: Explicitly characterize the patient's Prakriti, Vikriti (active doshic vitiation), Agni state (Manda/Tikshna/Visham/Sama), and Koshtha.
+- Nidana (identified dietary, behavioral, or environmental triggers) and Samprapti (preliminary pathogenesis/disease progression pathway connecting Nidana, Agni status, and manifesting symptoms).
+- Past medical history, relevant current medications, and any significant investigation findings from uploaded records.
+- Urgent red flags or triage prioritization if observed.
+Always conclude the physicianSummary with this exact sentence: "This is an AI-generated preliminary summary intended to support consultation; final diagnosis and clinical decisions remain the responsibility of the treating physician."
 
-TRIAGE / RED-FLAG DETECTION (runs continuously, at every step, not just at the end):
-As you gather symptoms at any step, continuously assess for emergency red-flag combinations.
-Classify EVERY response into one of these triage levels:
-- "Emergency": one or more red-flag combinations above are present — requires IMMEDIATE staff attention, do not continue routine intake
-- "Urgent": concerning but not immediately life-threatening
-- "Routine": standard complaint, no red flags
+TRIAGE / RED-FLAG DETECTION (runs continuously at every step):
+Continuously monitor for high-risk red flags (e.g., crushing chest pain, acute dyspnea, neurological deficits, severe hemorrhaging, acute surgical abdomen, anaphylaxis, suicidal ideation).
+Classify EVERY turn into one of these triage levels:
+- "Emergency": one or more red flags are present — requires IMMEDIATE staff notification; cease routine questioning immediately.
+- "Urgent": concerning findings requiring prompt attention, but not immediately life-threatening.
+- "Routine": standard presentation without emergency features.
 
 If triageLevel is "Emergency" at ANY point:
-- Set currentMode to "Emergency"
-- In chatReply, calmly confirm staff are alerted and tell the patient to stay put
-- Fill "triageReason" with the specific red-flag symptom(s)
-- Do NOT continue the formal step-by-step intake
+- Set currentMode to "Emergency".
+- In chatReply, calmly inform the patient that staff have been alerted and instruct them to remain seated and await immediate assistance.
+- Document the exact red-flag symptom(s) in "triageReason".
+- Cease all regular intake questioning.
+- If the patient provides further messages, update triageReason with any new worsening details and acknowledge calmly without resetting to intake mode.
 
-ONCE IN EMERGENCY MODE, for every subsequent patient message:
-- UPDATE triageReason to include new information, and briefly acknowledge it in chatReply.
-- Never go back to asking intake questions once in Emergency mode.
+OUTPUT FORMAT:
+You MUST respond with ONLY a single valid JSON object, with no markdown fences (\`\`\`json), backticks, or trailing commentary.
 
-You MUST respond with ONLY a single valid JSON object, no markdown, no code fences, no extra text.
 JSON schema:
 {
   "chatReply": string,
@@ -492,9 +513,12 @@ JSON schema:
   "primarySymptoms": string[] | null,
   "symptomOnsetPattern": string | null,
   "prakriti": string | null,
+  "vikriti": string | null,
   "agni": string | null,
   "koshtha": string | null,
   "aharaVihara": string | null,
+  "nidana": string | null,
+  "samprapti": string | null,
   "medicalHistory": string | null,
   "knownAllergies": string | null,
   "currentMedications": string | null,
@@ -503,11 +527,9 @@ JSON schema:
   "suggestedSteps": string[] | null,
   "physicianSummary": string | null
 }
-When currentMode is "Summary", also fill "aiIdentifiedConcerns" and "suggestedSteps".
-Only include fields you have actually learned from the conversation so far; use null for fields not yet known — EXCEPT physicianSummary, which must always be filled once currentMode is "Summary".
-Never wrap the JSON in \`\`\`json or any other formatting. Output raw JSON only.`
+When currentMode is "Summary", also ensure "aiIdentifiedConcerns" (cautious non-diagnostic notes) and "suggestedSteps" (safe, non-pharmacological self-care/monitoring advice) are populated.
+Only include values established during the session; use null for fields not yet determined — EXCEPT physicianSummary, which must be fully articulated whenever currentMode is "Summary".`
         };
-
         // Setup the base payload WITHOUT the model (injected by fallback function)
         const basePayload = {
             messages: [systemPrompt, ...messages],
@@ -561,10 +583,12 @@ app.post('/api/generate-summary-pdf', async (req, res) => {
         const jwt = require('jsonwebtoken');
         const User = require('./models/userModel.js');
         const token = req.cookies.jwt;
+        let decodedUserId = null;
 
         if (token) {
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                decodedUserId = decoded.userId;
                 const updateFields = {};
 
                 // Only save if the AI actually found real data
@@ -591,6 +615,19 @@ app.post('/api/generate-summary-pdf', async (req, res) => {
         const baseUrl = process.env.BACKEND_PUBLIC_URL || `${req.protocol}://${req.get("host")}`;
         const qrCodeDataUrl = await QRCode.toDataURL(`${baseUrl}${pdfDownloadUrl}`, { margin: 1, width: 300 });
 
+        // Track this summary for the Download page (best-effort; doesn't block the response)
+        if (decodedUserId) {
+            try {
+                await Record.create({
+                    userId: decodedUserId,
+                    type: 'summary',
+                    title: `AI Summary — ${referenceId}`,
+                    fileUrl: pdfDownloadUrl,
+                    referenceId,
+                });
+            } catch (e) { console.log("Record Save Error (summary):", e.message); }
+        }
+
         res.json({ summaryId, referenceId, pdfDownloadUrl, fhirUrl, qrCodeDataUrl });
     } catch (error) {
         console.error("Summary PDF/QR generation error:", error);
@@ -616,6 +653,25 @@ app.get('/api/summary-fhir/:id', (req, res) => {
     res.setHeader("Content-Type", "application/fhir+json");
     fs.createReadStream(filePath).pipe(res);
 });
+
+// --- Download page: list of past summaries + uploaded documents for the logged-in user ---
+app.get('/api/records', async (req, res) => {
+    try {
+        const jwt = require('jsonwebtoken');
+        const token = req.cookies.jwt;
+
+        if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const records = await Record.find({ userId: decoded.userId }).sort({ createdAt: -1 });
+
+        res.json({ records });
+    } catch (error) {
+        console.error("Fetch Records Error:", error);
+        res.status(401).json({ error: "Invalid or expired session" });
+    }
+});
+
 
 // BUG FIX: Removed invalid markdown link syntax from fetch URLs
 app.post('/transcribe', upload.single('audioFile'), async (req, res) => {
