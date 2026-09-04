@@ -92,7 +92,8 @@
     "listening":"Listening...",
     "clinicalSummary":"Clinical Summary",
     "gatheringInfo":"Gathering Info",
-    "typeSymptoms":"Enter your problems"
+    "typeSymptoms":"Enter your problems",
+    "history":"History"
   },
   "userDash": {
     "title": "How can we assist you today?",

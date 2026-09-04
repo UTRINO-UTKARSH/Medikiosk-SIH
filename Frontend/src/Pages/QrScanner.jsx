@@ -1,16 +1,29 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/refs */
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { QrCode, X, Camera } from "lucide-react";
+import jsQR from "jsqr";
 
 /**
  * QR Code Scanner
  * The camera view only mounts when the button is clicked — no camera
- * access is requested until then. Closing the modal stops the stream.
+ * access is requested until then. Video frames are continuously decoded
+ * with jsQR; as soon as a code is found, the modal closes and the result
+ * (e.g. the summary PDF URL from Parchi) is surfaced/opened.
  */
 export default function QrScanner() {
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState(null);
+
+  const handleResult = (value) => {
+    setResult(value);
+    setOpen(false);
+
+    // Your Parchi QR encodes the summary PDF URL — open it directly.
+    if (/^https?:\/\//i.test(value)) {
+      window.open(value, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F7F9F9] p-4">
@@ -28,31 +41,64 @@ export default function QrScanner() {
           </button>
 
           {result && (
-            <p className="text-sm text-slate-600">
-              Last scan: <span className="font-medium text-[#0F2A3D]">{result}</span>
+            <p className="max-w-xs break-all text-sm text-slate-600">
+              Last scan:{" "}
+              <span className="font-medium text-[#0F2A3D]">{result}</span>
             </p>
           )}
         </div>
       )}
 
-      {open && (
-        <ScannerModal
-          onClose={() => setOpen(false)}
-          onResult={(value) => {
-            setResult(value);
-            setOpen(false);
-          }}
-        />
-      )}
+      {open && <ScannerModal onClose={() => setOpen(false)} onResult={handleResult} />}
     </div>
   );
 }
 
 function ScannerModal({ onClose, onResult }) {
   const videoRef = useRef(null);
+  const canvasRef = useRef(document.createElement("canvas"));
   const streamRef = useRef(null);
+  const rafRef = useRef(null);
+  const scanFrameRef = useRef(null); // holds the latest scan function, avoids self-reference
+
   const [error, setError] = useState(null);
   const [ready, setReady] = useState(false);
+
+  const stopStream = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+  }, []);
+
+  // Pulls one frame from the video, runs it through jsQR, and either
+  // schedules the next frame or reports a found code. Stored in a ref
+  // (rather than called by its own useCallback name) so the recursive
+  // requestAnimationFrame call doesn't self-reference the binding.
+  useEffect(() => {
+    scanFrameRef.current = () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+
+        if (code && code.data) {
+          stopStream();
+          onResult(code.data);
+          return;
+        }
+      }
+
+      rafRef.current = requestAnimationFrame(() => scanFrameRef.current());
+    };
+  }, [onResult, stopStream]);
 
   const startCamera = useCallback(async () => {
     setError(null);
@@ -68,6 +114,7 @@ function ScannerModal({ onClose, onResult }) {
         await videoRef.current.play();
       }
       setReady(true);
+      rafRef.current = requestAnimationFrame(() => scanFrameRef.current());
     } catch (err) {
       setError(
         "Camera unavailable. Allow camera access in your browser, or check that a camera is connected."
@@ -75,16 +122,14 @@ function ScannerModal({ onClose, onResult }) {
     }
   }, []);
 
-  // Start the camera once, when the modal mounts.
-  useState(() => {
+  useEffect(() => {
     startCamera();
-    return () => {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-    };
-  });
+    return stopStream;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleClose = () => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    stopStream();
     onClose();
   };
 
@@ -144,12 +189,6 @@ function ScannerModal({ onClose, onResult }) {
 
         <div className="px-5 py-4">
           <p className="text-sm text-slate-500">Hold the QR code inside the frame.</p>
-          <button
-            onClick={() => onResult("Sample QR value")}
-            className="mt-3 w-full rounded-md border border-slate-200 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50"
-          >
-            Simulate a successful scan
-          </button>
         </div>
       </div>
     </div>
