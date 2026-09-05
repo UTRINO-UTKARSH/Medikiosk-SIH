@@ -243,7 +243,9 @@ This structured approach makes the output easier to:
 
 # ⚡ 7. High-Speed Cloud Inference
 
-The primary cloud inference pipeline uses:
+Parchi currently follows a **cloud-first inference architecture**, with Groq serving as the primary AI inference provider.
+
+The current pipeline is:
 
 ```text
 Patient Voice
@@ -257,7 +259,9 @@ Llama 3.1 8B Instant
 Structured Clinical Output
 ```
 
-Groq's low-latency inference is used to keep the patient interaction responsive during high-volume intake.
+Groq is used as the primary inference layer because its low-latency cloud inference keeps the patient interaction responsive during high-volume intake.
+
+> **Why cloud-first?** The local Qwen3/Ollama setup is retained as the edge/offline path, but local inference is currently limited by available hardware and deployment constraints. Using Groq as the primary path allows Parchi's core clinical intake workflow to remain fast and reliable while the local inference layer continues to be optimized.
 
 ---
 
@@ -281,7 +285,8 @@ Parchi therefore follows a **cloud-first + edge-fallback architecture**.
               ┌─────────▼┐ ┌▼──────────────┐
               │   Groq   │ │ Local Server  │
               │  Cloud   │ │    Ollama     │
-              └────┬─────┘ │    + Qwen     │
+              │  PRIMARY │ │    + Qwen3    │
+              └────┬─────┘ │   FALLBACK    │
                    │       └───────┬───────┘
                    │               │
                    └───────┬───────┘
@@ -289,9 +294,14 @@ Parchi therefore follows a **cloud-first + edge-fallback architecture**.
                   Structured Output
 ```
 
-When cloud connectivity is unavailable, inference can fall back to an **on-premise local server running quantized models through Ollama**, such as Qwen-based models.
+### Current inference strategy
 
-This allows the core intake and triage workflow to continue during network disruptions.
+- **Primary:** Groq cloud inference using the configured LLM.
+- **Fallback:** A locally hosted **Qwen3** model through **Ollama**.
+- **Purpose of Qwen3:** Provide an edge/offline inference path when cloud connectivity is unavailable.
+- **Current limitation:** Local Qwen3 inference depends on the hardware available at the deployment site. The local setup is therefore being treated as a fallback and optimization path rather than the primary inference layer.
+
+This architecture keeps the production/demo path fast through Groq while preserving a clear route toward **offline-capable rural deployments** as local hardware and model optimization improve.
 
 ---
 
@@ -511,13 +521,13 @@ The **Medical History** interface allows patients to verify and retrieve previou
 
 ## AI / ML
 
-| Technology               | Purpose                     |
-| ------------------------ | --------------------------- |
-| **Whisper Large V3**     | Speech recognition          |
-| **Groq**                 | Low-latency cloud inference |
-| **Llama 3.1 8B Instant** | Cloud LLM                   |
-| **Ollama**               | Local inference runtime     |
-| **Qwen**                 | Offline/edge LLM            |
+| Technology               | Purpose                                      |
+| ------------------------ | -------------------------------------------- |
+| **Whisper Large V3**     | Speech recognition                            |
+| **Groq**                 | Primary low-latency cloud inference provider |
+| **Llama 3.1 8B Instant** | Primary cloud LLM                            |
+| **Ollama**               | Local inference runtime for edge fallback    |
+| **Qwen3**                | Local/offline fallback LLM                   |
 
 ## Authentication & Communication
 
@@ -832,17 +842,21 @@ The frontend will communicate with the local Express API.
 
 # 📴 Running the Local AI Fallback
 
-Install Ollama and pull the required local model.
+Parchi keeps a locally hosted Qwen3 model as its **edge/offline fallback**.
+
+Install Ollama and pull the Qwen3 model configured for your local deployment.
 
 Example:
 
 ```bash
-ollama pull qwen2.5:3b
+ollama pull <your-qwen3-model>
 ```
 
 Then start the Ollama service.
 
-The backend can use the local model when cloud inference is unavailable.
+When the cloud inference path is unavailable, the backend can route inference to the local Ollama/Qwen3 deployment.
+
+> **Hardware note:** Qwen3 local inference can be significantly more resource-intensive than the cloud path depending on model size and quantization. The local model is therefore intended as a fallback/edge capability and may require suitable hardware for reliable real-time operation.
 
 ---
 
