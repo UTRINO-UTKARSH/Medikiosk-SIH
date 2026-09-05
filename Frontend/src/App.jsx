@@ -15,7 +15,6 @@ import UserDash from './components/User-dash/UserDash';
 import LabReport from './components/User-dash/LabReport';
 import QrScanner from './Pages/QrScanner';
 import Downloads from './components/User-dash/Downloads';
-// import DoctorDashboard from './components/hospital/DoctorDashboard';
 
 const publicRoutes = ['/', '/auth', '/login','/user-dash','/history'];
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";

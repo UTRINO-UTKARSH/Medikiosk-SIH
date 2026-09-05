@@ -45,7 +45,6 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// User/Auth routes remain exactly as they were
 const userRoutes = require('./routes/routes.js');
 app.use('/api/users', userRoutes);
 
@@ -53,11 +52,9 @@ app.get('/', (req, res) => {
     res.send("Parchi API is running");
 });
 
-// --- Memory-Safe File Storage System ---
 const TEMP_DIR = path.join(os.tmpdir(), 'parchi_summaries');
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
 
-// Auto-cleanup cron to prevent disk space exhaustion
 setInterval(() => {
     fs.readdir(TEMP_DIR, (err, files) => {
         if (err) return;
@@ -83,17 +80,14 @@ function generateReferenceId() {
 }
 
 async function extractTextFromPdf(buffer) {
-    // 1. Traditional v1 default function: pdf(buffer)
     if (typeof pdfParseModule === 'function') {
         const data = await pdfParseModule(buffer);
         return data.text || "";
     }
-    // 2. Transpiled CommonJS default: pdf.default(buffer)
     if (pdfParseModule.default && typeof pdfParseModule.default === 'function') {
         const data = await pdfParseModule.default(buffer);
         return data.text || "";
     }
-    // 3. Modern v2 class API: new PDFParse({ data: buffer }).getText()
     const PDFClass = pdfParseModule.PDFParse || pdfParseModule;
     if (typeof PDFClass === 'function') {
         try {
@@ -111,7 +105,6 @@ async function extractTextFromPdf(buffer) {
     throw new Error("Unable to initialize pdf-parse module.");
 }
 
-// --- NEW: HL7 FHIR R4 Bundle Generator ---
 function buildFHIRBundle(data, referenceId) {
     return {
         resourceType: "Bundle",
@@ -241,7 +234,6 @@ async function callGroqWithFallback(basePayload, modelsArray) {
         const currentModel = modelsArray[i];
         console.log(`[AI] Attempting with model (${i + 1}/${modelsArray.length}):${currentModel}`);
 
-        // Inject the current model into the payload
         const payload = { ...basePayload, model: currentModel };
 
         try {
@@ -256,13 +248,11 @@ async function callGroqWithFallback(basePayload, modelsArray) {
 
             const data = await response.json();
 
-            // 1. Successful valid response
             if (response.ok && data.choices && data.choices[0]?.message?.content) {
                 console.log(`[AI] Success using model: ${currentModel}`);
                 return { response, data };
             }
 
-            // 2. Groq specific JSON validation failure (salvage the text!)
             if (!response.ok && data.error?.code === "json_validate_failed" && data.error?.failed_generation) {
                 console.log(`[AI] Salvaged JSON failure from: ${currentModel}`);
                 return {
@@ -273,16 +263,13 @@ async function callGroqWithFallback(basePayload, modelsArray) {
                 };
             }
 
-            // 3. Any other API failure (e.g., rate limit, model offline)
             console.warn(`[AI] Model ${currentModel} failed:`, data.error?.message || "Unknown error");
 
         } catch (err) {
-            // Network failures
             console.error(`[AI] Network error with model ${currentModel}:`, err.message);
         }
     }
 
-    // If the loop finishes without returning, all models failed
     throw new Error("All fallback models failed.");
 }
 
