@@ -4,7 +4,7 @@
 
 **Parchi (पर्ची)** is an **API-first, multimodal clinical intake and early-triage platform** designed to reduce congestion, documentation burden, and language barriers in high-volume **Outpatient Departments (OPDs), Community Health Centres (CHCs), and rural Primary Health Centres (PHCs)**.
 
-Built for the **Smart India Hackathon (SIH)**, Parchi transforms the traditional patient intake slip into a structured digital pipeline that collects patient information through **voice, touch, and assisted interaction**, performs rule-based red-flag triage, generates an AI-assisted clinical summary, and delivers a concise handoff to the examining doctor through a **PDF and dynamic QR code**.
+Built for the **Smart India Hackathon (SIH)**, Parchi transforms the traditional patient intake slip into a structured digital pipeline that collects patient information through **voice, touch, and assisted interaction**, performs rule-based red-flag triage, generates an AI-assisted clinical summary, and delivers a concise handoff to the examining doctor through a **PDF and dynamic QR code*
 
 > ⚠️ **Clinical Safety Notice:** Parchi is an assistive intake and early-triage system. It does **not** provide independent final diagnoses or prescribe medications. All clinical decisions remain with qualified healthcare professionals.
 
